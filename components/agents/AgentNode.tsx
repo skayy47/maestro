@@ -14,60 +14,77 @@ interface AgentNodeProps {
 }
 
 /**
- * A single agent neuron orbiting the core. Shows its own instrument color;
- * selecting it themes the whole UI to that agent.
+ * A single agent neuron orbiting the core.
+ *
+ * Positioning and animation transforms are deliberately on SEPARATE elements:
+ * the outer wrapper owns the `-translate-*` centering (so the circle's center
+ * sits exactly on the orbit ring), while the inner motion element owns the
+ * hover/float transforms. If both lived on one node, Framer Motion would
+ * overwrite the Tailwind translate and the ring would drift off the core.
+ * The label is absolutely positioned so its height never nudges the circle.
  */
 export function AgentNode({ id, active, dim, onSelect, style }: AgentNodeProps) {
   const a = AGENTS[id];
 
   return (
-    <motion.button
-      type="button"
-      onClick={() => onSelect(id)}
+    <div
+      className="absolute z-10 -translate-x-1/2 -translate-y-1/2"
       style={style}
-      className="group absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-2 outline-none"
-      whileHover={{ scale: 1.07 }}
-      whileTap={{ scale: 0.96 }}
-      animate={active ? { y: [0, -4, 0] } : { y: 0 }}
-      transition={{ duration: 3, repeat: active ? Infinity : 0, ease: "easeInOut" }}
-      aria-label={`${a.label} — ${a.role}`}
-      aria-pressed={active}
     >
-      <span
-        className={cn(
-          "grid h-14 w-14 place-items-center rounded-full border transition-all duration-300",
-          dim ? "opacity-45" : "opacity-100",
-        )}
-        style={{
-          borderColor: `rgb(${a.rgb} / ${active ? 0.9 : 0.4})`,
-          background: `radial-gradient(circle at 50% 35%, rgb(${a.rgb} / ${
-            active ? 0.45 : 0.2
-          }), rgba(15,18,26,0.6) 70%)`,
-          boxShadow: active
-            ? `0 0 28px -4px rgb(${a.rgb} / 0.85)`
-            : `0 0 16px -6px rgb(${a.rgb} / 0.5)`,
+      <motion.button
+        type="button"
+        onClick={() => onSelect(id)}
+        className="group relative block outline-none"
+        whileHover={{ scale: 1.07 }}
+        whileTap={{ scale: 0.96 }}
+        animate={active ? { y: [0, -4, 0] } : { y: 0 }}
+        transition={{
+          duration: 3,
+          repeat: active ? Infinity : 0,
+          ease: "easeInOut",
         }}
+        aria-label={`${a.label} — ${a.role}`}
+        aria-pressed={active}
       >
-        <span
-          className="h-2.5 w-2.5 rounded-full"
-          style={{ background: a.core, boxShadow: `0 0 10px ${a.core}` }}
-        />
-      </span>
-      <span className="flex flex-col items-center leading-tight">
+        {/* circle — anchored on the orbit ring */}
         <span
           className={cn(
-            "font-display text-xs font-medium",
-            dim ? "text-text-secondary" : "text-text-primary",
+            "grid h-14 w-14 place-items-center rounded-full border transition-all duration-300",
+            dim ? "opacity-45" : "opacity-100",
           )}
+          style={{
+            borderColor: `rgb(${a.rgb} / ${active ? 0.9 : 0.4})`,
+            background: `radial-gradient(circle at 50% 35%, rgb(${a.rgb} / ${
+              active ? 0.45 : 0.2
+            }), rgba(15,18,26,0.6) 70%)`,
+            boxShadow: active
+              ? `0 0 28px -4px rgb(${a.rgb} / 0.85)`
+              : `0 0 16px -6px rgb(${a.rgb} / 0.5)`,
+          }}
         >
-          {a.label}
+          <span
+            className="h-2.5 w-2.5 rounded-full"
+            style={{ background: a.core, boxShadow: `0 0 10px ${a.core}` }}
+          />
         </span>
-        {dim ? (
-          <span className="font-mono text-[9px] uppercase tracking-wider text-text-tertiary">
-            soon
+
+        {/* label — floats below the circle, out of flow */}
+        <span className="absolute left-1/2 top-full mt-2 flex -translate-x-1/2 flex-col items-center whitespace-nowrap leading-tight">
+          <span
+            className={cn(
+              "font-display text-xs font-medium",
+              dim ? "text-text-secondary" : "text-text-primary",
+            )}
+          >
+            {a.label}
           </span>
-        ) : null}
-      </span>
-    </motion.button>
+          {dim ? (
+            <span className="font-mono text-[9px] uppercase tracking-wider text-text-tertiary">
+              soon
+            </span>
+          ) : null}
+        </span>
+      </motion.button>
+    </div>
   );
 }
