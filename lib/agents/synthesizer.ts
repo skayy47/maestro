@@ -33,7 +33,7 @@ Output ONLY a valid JSON object matching this schema:
  * Build a compact, token-efficient digest of each agent's output so the
  * synthesizer reasons over substance, not raw JSON noise.
  */
-function digestEnvelopes(envelopes: AgentEnvelope[]): string {
+export function digestEnvelopes(envelopes: AgentEnvelope[]): string {
   return envelopes
     .map((e) => {
       const out = (e.output ?? {}) as Record<string, unknown>;

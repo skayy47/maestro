@@ -7,34 +7,12 @@ import { GlassPanel } from "@/components/ui/GlassPanel";
 import { AGENTS, type AgentId } from "@/lib/agents/registry";
 import type { StreamEvent } from "@/lib/hooks/useOrchestraate";
 import type { AgentEnvelope, SynthesisOutput } from "@/lib/agents/envelopes";
+import { agentHighlight } from "@/lib/agents/highlight";
 import { DeliverableDrawer, type DrawerItem } from "@/components/deliverables/DeliverableDrawer";
 
 interface OutputsPanelProps {
   events: StreamEvent[];
   loading: boolean;
-}
-
-/** Extract a meaningful one-line highlight from an agent's REAL output. */
-function agentHighlight(envelope: AgentEnvelope): string {
-  const out = (envelope.output ?? {}) as Record<string, any>;
-  switch (envelope.agent) {
-    case "research":
-      return out.headline || out.market_overview || "Market intelligence ready";
-    case "data": {
-      if (Array.isArray(out.kpis) && out.kpis.length) {
-        return `${out.kpis.length} KPIs · ${out.kpis[0].label}: ${out.kpis[0].value}`;
-      }
-      return out.insights?.[0] || out.findings?.[0] || "Analysis ready";
-    }
-    case "automation": {
-      const steps = Array.isArray(out.steps) ? out.steps.length : 0;
-      return out.objective
-        ? `${out.objective}${steps ? ` · ${steps} steps` : ""}`
-        : "Workflow designed";
-    }
-    default:
-      return envelope.reasoning || "Complete";
-  }
 }
 
 export function OutputsPanel({ events, loading }: OutputsPanelProps) {
