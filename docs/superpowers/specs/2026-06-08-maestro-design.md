@@ -482,8 +482,8 @@ Flow: mission → conducting gesture → plan DAG materializes → agents ignite
 
 ## 7. Scope & phasing
 
-- **MVP (V1) — Orchestrator + Research + Data.** *(Adjusted from the original Orchestrator+Research+Content: Data is a stronger flex for AI/Data roles than marketing copy.)* Ships: real planner, real web-search Research, real stats Data, SSE streaming, the Neural Obsidian shell with core + 3 agent nodes + theme engine, one warmed showcase mission, Supabase run persistence + replay.
-- **Wave 2 — Automation (lead) + Content.** Automation is the standout next agent — it emits a uniquely *verifiable* artifact (an importable n8n workflow) and automation skills are highly employable; fully specced in §5.6. Content is the trivial add (LLM-only, grounded on the blackboard). *(Option: promote Automation into the opening cut as **MVP-4** for a 4-agent first demo — it's ready either way.)*
+- **MVP (V1) — Orchestrator + Research + Data + Automation.** *(Data replaces the original Content for AI/Data-role signal; Automation promoted into the opening cut for a 4-agent first demo — its importable-workflow artifact is a standout.)* Ships: real planner, real web-search Research, real stats Data, real n8n-workflow Automation, SSE streaming, the Neural Obsidian shell with core + 4 agent nodes + theme engine, one warmed showcase mission, Supabase run persistence + replay.
+- **Wave 2 — Content.** The trivial add (LLM-only, grounded on the blackboard) — landing pages, emails, social, positioning, shaped to format schemas.
 - **Wave 3 — Audit + Builder.** Audit = QA differentiator (validates the chain); Builder = code-gen with real file artifacts. Completes the 7-agent roster.
 
 YAGNI guardrails: no auth, no multi-user, no billing in V1. Three.js is used **only** for the Orchestrator core orb — every other node is DOM + Framer Motion (perf + simplicity).
