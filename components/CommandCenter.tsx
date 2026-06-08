@@ -6,9 +6,18 @@ import { MissionPanel } from "@/components/panels/MissionPanel";
 import { OutputsPanel } from "@/components/panels/OutputsPanel";
 import { WorkflowTimeline } from "@/components/timeline/WorkflowTimeline";
 
-/** The MAESTRO command center — the AI operating system shell. */
+/**
+ * The MAESTRO command center — the AI operating system shell.
+ *
+ * Single source of truth: useOrchestrate() lives here only.
+ * - conduct + loading + error → passed down to MissionPanel
+ * - events + loading → passed down to OutputsPanel
+ * - events + loading → passed down to WorkflowTimeline
+ *
+ * This ensures all panels share the same stream.
+ */
 export function CommandCenter() {
-  const { events, loading } = useOrchestrate();
+  const { events, loading, error, conduct, reset } = useOrchestrate();
 
   return (
     <main className="relative z-10 mx-auto flex min-h-dvh max-w-[1400px] flex-col gap-4 p-4 lg:p-6">
@@ -24,16 +33,28 @@ export function CommandCenter() {
         </div>
         <div className="flex items-center gap-4 font-mono text-[10px] text-text-tertiary">
           <span className="hidden sm:inline">v0.1 · neural-obsidian</span>
-          <span className="flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-            interface online
-          </span>
+          {loading ? (
+            <span className="flex items-center gap-1.5 text-accent">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
+              orchestrating
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+              interface online
+            </span>
+          )}
         </div>
       </header>
 
       {/* Main grid: mission · stage · outputs */}
       <div className="grid flex-1 grid-cols-1 gap-4 lg:grid-cols-[300px_1fr_320px]">
-        <MissionPanel />
+        <MissionPanel
+          loading={loading}
+          error={error}
+          conduct={conduct}
+          onReset={reset}
+        />
         <div className="flex items-center justify-center py-6">
           <AgentOrbit />
         </div>
@@ -41,7 +62,7 @@ export function CommandCenter() {
       </div>
 
       {/* Execution timeline */}
-      <WorkflowTimeline />
+      <WorkflowTimeline events={events} loading={loading} />
     </main>
   );
 }
