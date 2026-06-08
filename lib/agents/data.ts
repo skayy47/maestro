@@ -5,6 +5,7 @@
  */
 
 import { callGroqJSON } from "@/lib/llm/groq";
+import { generateSyntheticDataset } from "@/lib/agents/dataset";
 
 export interface DataOutput {
   dataset_profile: {
@@ -56,10 +57,15 @@ GUARDRAILS
 - If data is incomplete or won't support a requested analysis, say so plainly.
 - Every numeric claim must trace back to a stat.
 
+KPI FORMATTING
+- Format every kpi.value as a human-readable string WITH units, never a bare
+  number. Money → "$45.0K" / "$1.2M"; counts → "1,250 units"; ratios → "4.3 / 5".
+- Make KPI labels specific to the mission domain, not generic.
+
 Output ONLY a valid JSON object:
 {
   "dataset_profile": {"rows": 0, "cols": 0, "notes": "..."},
-  "kpis": [{"label": "...", "value": "...", "trend": "up|down|flat"}],
+  "kpis": [{"label": "...", "value": "$45.0K", "trend": "up|down|flat"}],
   "findings": ["finding 1"],
   "charts": [{"type": "line|bar|scatter|pie", "title": "...", "x": "col", "y": "col"}],
   "insights": ["insight 1"],
@@ -79,39 +85,32 @@ export async function runData(
   try {
     reasoning = `Analyzing data query: "${dataQuery}"`;
 
-    // For MVP: mock data summary (in real version, parse CSV/Excel)
-    const mockDataSummary = {
-      rows: 1250,
-      cols: 8,
-      columns: ["date", "region", "revenue", "units", "satisfaction"],
-      summary_stats: {
-        revenue: {
-          mean: 45000,
-          median: 42000,
-          std: 15000,
-          min: 5000,
-          max: 120000,
-        },
-      },
-      trends: {
-        revenue: "increasing",
-        units: "stable",
-      },
-    };
+    // Mission-seeded synthetic dataset with REAL computed stats (varies per
+    // mission; honestly labelled). Replaces the old fixed mock.
+    const dataset = generateSyntheticDataset(dataQuery);
 
     const userPrompt = `Analyze this data and provide structured intelligence:
 
 Query: "${dataQuery}"
 
-Data Summary:
-${JSON.stringify(mockDataSummary, null, 2)}
+Data Summary (computed statistics from a sample dataset):
+${JSON.stringify(dataset, null, 2)}
 
-Generate KPIs, findings, and chart recommendations.`;
+Generate KPIs, findings, and chart recommendations grounded in these stats.
+Tie your insights to the mission domain.`;
 
     output = await callGroqJSON<DataOutput>(userPrompt, SYSTEM_PROMPT, {
       max_tokens: 1024,
       temperature: 0.5,
     });
+
+    // Lock the dataset profile to the real generated numbers + honest label
+    // (the LLM sometimes echoes stale values).
+    output.dataset_profile = {
+      rows: dataset.rows,
+      cols: dataset.cols,
+      notes: dataset.note,
+    };
 
     reasoning += ` — computed KPIs and insights.`;
   } catch (error) {

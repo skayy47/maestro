@@ -109,16 +109,21 @@ export function AutomationDeliverable({ output }: { output: AutomationOutput }) 
                 </div>
                 {/* Step content */}
                 <div className="flex-1 pb-1">
-                  <div className="flex items-center gap-2">
-                    <p className="font-display text-[12.5px] font-medium text-text-primary">
+                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                    <p className="font-display text-[12.5px] font-medium leading-snug text-text-primary">
                       {step.action || step.node_type}
                     </p>
-                    <span className="font-mono text-[9px] text-text-tertiary">
-                      {step.integration}
-                    </span>
+                    {step.integration ? (
+                      <span
+                        className="shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[9px] leading-none"
+                        style={{ background: `${ACCENT}14`, color: ACCENT }}
+                      >
+                        {step.integration}
+                      </span>
+                    ) : null}
                   </div>
                   {step.config_notes ? (
-                    <p className="mt-0.5 text-[11px] leading-snug text-text-tertiary">
+                    <p className="mt-1 text-[11px] leading-snug text-text-tertiary">
                       {step.config_notes}
                     </p>
                   ) : null}

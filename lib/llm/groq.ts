@@ -17,6 +17,51 @@ const getGroqKey = () => {
 const GROQ_BASE_URL = "https://api.groq.com/openai/v1";
 
 /**
+ * Model fallback chain. Each Groq model has its OWN per-day token budget, so
+ * when the 70B hits its daily limit (TPD 429), the 8B model — with a much
+ * larger separate quota — keeps the system answering. This is what stops a
+ * rate limit from collapsing a live demo into "Failed" cards.
+ */
+const MODEL_CHAIN = [
+  "llama-3.3-70b-versatile", // primary: best reasoning
+  "llama-3.1-8b-instant", // fallback: separate + larger quota, very fast
+];
+
+/** Errors worth retrying on the next model (rate limits, transient 5xx). */
+function isRetryable(status: number, message: string): boolean {
+  return status === 429 || status >= 500 || /rate limit/i.test(message);
+}
+
+/**
+ * Longest we'll wait out a short (per-minute TPM) rate-limit before switching
+ * models. Groq TPM windows are ≤60s; observed waits are ~12s, so 16s covers
+ * them while still bailing fast on per-day limits (which report minutes/hours).
+ */
+const MAX_RETRY_WAIT_MS = 16000;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Parse Groq's "Please try again in 12.05s / 150ms / 1h10m19s" hint to ms.
+ * Short waits (per-minute TPM limits) are worth sleeping out; long waits
+ * (per-day TPD limits) are not — we switch models instead.
+ */
+export function parseRetryAfterMs(message: string): number | null {
+  const m = message.match(/try again in ([0-9hms.]+)/i);
+  if (!m) return null;
+  const str = m[1];
+  let ms = 0;
+  const h = str.match(/([\d.]+)h/);
+  const min = str.match(/([\d.]+)m(?!s)/);
+  const s = str.match(/([\d.]+)s/);
+  const milli = str.match(/([\d.]+)ms/);
+  if (h) ms += parseFloat(h[1]) * 3600_000;
+  if (min) ms += parseFloat(min[1]) * 60_000;
+  if (s && !milli) ms += parseFloat(s[1]) * 1000;
+  if (milli) ms += parseFloat(milli[1]);
+  return ms || null;
+}
+
+/**
  * Helper to check if API key is available (for build-time checks)
  */
 export const hasGroqKey = () => {
@@ -30,13 +75,11 @@ export interface LLMOptions {
   system?: string;
 }
 
-/**
- * Call Groq Llama 3.3 70B.
- * Returns the text response. If JSON mode, response is valid JSON.
- */
-export async function callGroq(
+/** One attempt against a specific model. Throws a tagged error on failure. */
+async function callGroqOnce(
+  model: string,
   prompt: string,
-  options: LLMOptions = {}
+  options: LLMOptions
 ): Promise<string> {
   const {
     temperature = 0.7,
@@ -45,39 +88,96 @@ export async function callGroq(
     system = "You are a helpful AI assistant.",
   } = options;
 
-  try {
-    const response = await fetch(`${GROQ_BASE_URL}/chat/completions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${getGroqKey()}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: prompt },
-        ],
-        temperature,
-        max_tokens,
-        response_format: json_mode ? { type: "json_object" } : undefined,
-      }),
-    });
+  const response = await fetch(`${GROQ_BASE_URL}/chat/completions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${getGroqKey()}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: prompt },
+      ],
+      temperature,
+      max_tokens,
+      response_format: json_mode ? { type: "json_object" } : undefined,
+    }),
+  });
 
-    if (!response.ok) {
+  if (!response.ok) {
+    let message = response.statusText;
+    try {
       const error = await response.json();
-      throw new Error(`Groq API error: ${error.error?.message || response.statusText}`);
+      message = error.error?.message || message;
+    } catch {
+      /* non-JSON error body */
     }
-
-    const data = (await response.json()) as {
-      choices: Array<{ message: { content: string } }>;
+    const err = new Error(`Groq API error: ${message}`) as Error & {
+      status?: number;
+      retryable?: boolean;
     };
-    return data.choices[0]?.message.content || "";
-  } catch (error) {
-    console.error("Groq call failed:", error);
-    // TODO: fallback to Gemini here if needed
-    throw error;
+    err.status = response.status;
+    err.retryable = isRetryable(response.status, message);
+    throw err;
   }
+
+  const data = (await response.json()) as {
+    choices: Array<{ message: { content: string } }>;
+  };
+  return data.choices[0]?.message.content || "";
+}
+
+/**
+ * Call Groq with automatic model fallback.
+ * Tries each model in MODEL_CHAIN; on a retryable failure (rate limit / 5xx)
+ * it falls through to the next. Throws only if the whole chain fails.
+ */
+export async function callGroq(
+  prompt: string,
+  options: LLMOptions = {}
+): Promise<string> {
+  let lastError: unknown;
+
+  for (let i = 0; i < MODEL_CHAIN.length; i++) {
+    const model = MODEL_CHAIN[i];
+
+    // Up to 2 attempts per model: one immediate, one after a short backoff
+    // (to ride out per-minute TPM limits that clear in seconds).
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const result = await callGroqOnce(model, prompt, options);
+        if (i > 0 || attempt > 0) {
+          console.warn(`[Groq] Served by "${model}" (attempt ${attempt + 1}).`);
+        }
+        return result;
+      } catch (error) {
+        lastError = error;
+        const retryable = (error as { retryable?: boolean })?.retryable;
+        if (!retryable) {
+          console.error(`[Groq] Non-retryable error on "${model}":`, (error as Error).message);
+          throw error;
+        }
+
+        const waitMs = parseRetryAfterMs((error as Error).message);
+        // Short per-minute limit on first attempt → wait it out, retry same model.
+        if (attempt === 0 && waitMs != null && waitMs <= MAX_RETRY_WAIT_MS) {
+          console.warn(`[Groq] "${model}" throttled; waiting ${Math.round(waitMs)}ms then retrying.`);
+          await sleep(waitMs + 300);
+          continue;
+        }
+        // Long limit (daily) or already retried → fall to the next model.
+        if (i < MODEL_CHAIN.length - 1) {
+          console.warn(`[Groq] "${model}" exhausted. Falling back to "${MODEL_CHAIN[i + 1]}".`);
+        }
+        break;
+      }
+    }
+  }
+
+  console.error("Groq call failed across all models:", lastError);
+  throw lastError;
 }
 
 /**
