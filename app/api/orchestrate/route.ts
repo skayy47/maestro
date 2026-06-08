@@ -18,6 +18,8 @@ import { planMission } from "@/lib/agents/orchestrator";
 import { runResearch } from "@/lib/agents/research";
 import { runData } from "@/lib/agents/data";
 import { runAutomation } from "@/lib/agents/automation";
+import { synthesize } from "@/lib/agents/synthesizer";
+import type { AgentEnvelope } from "@/lib/agents/envelopes";
 
 export const runtime = "nodejs";
 
@@ -139,31 +141,27 @@ export async function POST(request: Request) {
             }
           }
 
-          // Step 3: Synthesis (Orchestrator merges agent outputs)
+          // Step 3: Synthesis (Orchestrator weaves agent outputs into a briefing)
           controller.enqueue(
             encoder.encode(
               formatSSEEvent({
                 type: "synthesis",
                 data: {
                   status: "synthesizing",
-                  message: "Maestro is composing the final symphony...",
+                  message: "Maestro is composing the final movement...",
                 },
               })
             )
           );
 
+          // Real LLM-composed executive briefing over the collected envelopes.
+          const briefing = await synthesize(
+            mission,
+            collectedEnvelopes as AgentEnvelope[]
+          );
+
           const synthesisOutput = {
-            executive_summary: `Orchestration complete: ${plan.expected_deliverable}`,
-            deliverable: {
-              type: plan.expected_deliverable,
-              agent_contributions: collectedEnvelopes.map(
-                (e: any) => `${e.agent}: ${e.reasoning}`
-              ),
-              confidence: collectedEnvelopes.reduce(
-                (sum: number, e: any) => sum + (e.confidence || 0),
-                0
-              ) / Math.max(collectedEnvelopes.length, 1),
-            },
+            ...briefing,
             total_agents_run: collectedEnvelopes.length,
             total_duration_ms: collectedEnvelopes.reduce(
               (sum: number, e: any) => sum + (e.timing_ms || 0),
