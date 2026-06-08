@@ -4,14 +4,24 @@
  * Fallback to Gemini for long-context or if Groq rate-limits.
  */
 
-if (!process.env.GROQ_API_KEY) {
-  throw new Error("GROQ_API_KEY not set in .env.local");
-}
-
-// Groq client (via Anthropic SDK proxy, or use groq-sdk directly if preferred)
-// For now, using a direct fetch to Groq's API for simplicity.
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
+// Lazy check: only throw if the API is actually called without a key
+const getGroqKey = () => {
+  const key = process.env.GROQ_API_KEY;
+  if (!key) {
+    throw new Error(
+      "GROQ_API_KEY not set in .env.local. Add it and restart the dev server."
+    );
+  }
+  return key;
+};
 const GROQ_BASE_URL = "https://api.groq.com/openai/v1";
+
+/**
+ * Helper to check if API key is available (for build-time checks)
+ */
+export const hasGroqKey = () => {
+  return !!process.env.GROQ_API_KEY;
+};
 
 export interface LLMOptions {
   temperature?: number;
@@ -39,7 +49,7 @@ export async function callGroq(
     const response = await fetch(`${GROQ_BASE_URL}/chat/completions`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
+        Authorization: `Bearer ${getGroqKey()}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -111,7 +121,7 @@ export async function* streamGroq(
     const response = await fetch(`${GROQ_BASE_URL}/chat/completions`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${GROQ_API_KEY}`,
+        Authorization: `Bearer ${getGroqKey()}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
