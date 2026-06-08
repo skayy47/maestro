@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import { Sparkles, AlertCircle } from "lucide-react";
 import { GlassPanel } from "@/components/ui/GlassPanel";
+import { useOrchestrate } from "@/lib/hooks/useOrchestraate";
 
 const EXAMPLES = [
   "Analyze a startup idea and create a launch strategy.",
@@ -11,10 +12,14 @@ const EXAMPLES = [
   "Take this sales data, find the trends, turn them into an action plan.",
 ];
 
-/** Left panel — where a mission is conducted. (Engine wires up next phase.) */
+/** Left panel — where a mission is conducted. */
 export function MissionPanel() {
   const [mission, setMission] = useState("");
-  const [status, setStatus] = useState<string | null>(null);
+  const { loading, error, conduct } = useOrchestrate();
+
+  const handleConduct = async () => {
+    await conduct(mission);
+  };
 
   return (
     <GlassPanel eyebrow="Mission" className="flex h-full flex-col">
@@ -42,19 +47,38 @@ export function MissionPanel() {
         type="button"
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
-        onClick={() =>
-          setStatus("engine offline — orchestration lands in the next build phase")
-        }
-        disabled={!mission.trim()}
+        onClick={handleConduct}
+        disabled={!mission.trim() || loading}
         className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-accent/40 bg-accent/[0.15] py-2.5 font-display text-sm font-semibold text-text-primary transition hover:bg-accent/25 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        <Sparkles className="h-4 w-4" />
-        Conduct
+        {loading ? (
+          <>
+            <motion.span
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            >
+              <Sparkles className="h-4 w-4" />
+            </motion.span>
+            Orchestrating…
+          </>
+        ) : (
+          <>
+            <Sparkles className="h-4 w-4" />
+            Conduct
+          </>
+        )}
       </motion.button>
 
-      <p className="mt-2 h-4 font-mono text-[10px] text-text-tertiary">
-        {status ? `▮ ${status}` : "▮ engine: standby"}
-      </p>
+      {error ? (
+        <p className="mt-2 flex items-center gap-1.5 font-mono text-[10px] text-red-400">
+          <AlertCircle className="h-3 w-3" />
+          {error}
+        </p>
+      ) : (
+        <p className="mt-2 h-4 font-mono text-[10px] text-text-tertiary">
+          ▮ {loading ? "engine: running" : "engine: standby"}
+        </p>
+      )}
     </GlassPanel>
   );
 }
