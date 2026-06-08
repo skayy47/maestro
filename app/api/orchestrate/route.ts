@@ -15,6 +15,9 @@
  */
 
 import { planMission } from "@/lib/agents/orchestrator";
+import { runResearch } from "@/lib/agents/research";
+import { runData } from "@/lib/agents/data";
+import { runAutomation } from "@/lib/agents/automation";
 
 export const runtime = "nodejs";
 
@@ -62,6 +65,8 @@ export async function POST(request: Request) {
           );
 
           // Step 2: Run each agent group sequentially
+          const collectedEnvelopes: unknown[] = [];
+
           for (const agentGroup of plan.execution_order) {
             // For MVP, agents in a group run sequentially (we can parallelize later)
             for (const agentId of agentGroup) {
@@ -74,42 +79,63 @@ export async function POST(request: Request) {
                 )
               );
 
-              // TODO: Call the actual agent (research, data, automation)
-              // For now, mock it with a placeholder
-              const mockOutput = {
-                agent: agentId,
-                status: "complete",
-                reasoning: `${agentId} agent processed the mission`,
-                output: { placeholder: true },
-                artifacts: [],
-                sources: [],
-                confidence: 0.7,
-                caveats: ["MVP stub - real agent coming soon"],
-                timing_ms: 500,
-              };
+              // Call the actual agent
+              let envelope: unknown;
+              try {
+                if (agentId === "research") {
+                  envelope = await runResearch(mission, collectedEnvelopes);
+                } else if (agentId === "data") {
+                  envelope = await runData(mission, collectedEnvelopes);
+                } else if (agentId === "automation") {
+                  envelope = await runAutomation(mission, collectedEnvelopes);
+                } else {
+                  // Skip unknown agents
+                  continue;
+                }
 
-              // Stream some mock tokens (simulate thinking)
-              for (const char of `Processing with ${agentId}...`.split("")) {
-                if (isClosed) break;
+                collectedEnvelopes.push(envelope);
+
+                // Stream reasoning tokens (simulate streaming)
+                const reasoning = (envelope as any)?.reasoning || "";
+                for (const char of reasoning.split("")) {
+                  if (isClosed) break;
+                  controller.enqueue(
+                    encoder.encode(
+                      formatSSEEvent({
+                        type: "token",
+                        data: { agent: agentId, delta: char },
+                      })
+                    )
+                  );
+                  await new Promise((resolve) => setTimeout(resolve, 5));
+                }
+
                 controller.enqueue(
                   encoder.encode(
                     formatSSEEvent({
-                      type: "token",
-                      data: { agent: agentId, delta: char },
+                      type: "agent_done",
+                      data: envelope,
                     })
                   )
                 );
-                await new Promise((resolve) => setTimeout(resolve, 20));
+              } catch (agentError) {
+                console.error(`[MAESTRO] ${agentId} agent error:`, agentError);
+                controller.enqueue(
+                  encoder.encode(
+                    formatSSEEvent({
+                      type: "error",
+                      data: {
+                        agent: agentId,
+                        message:
+                          agentError instanceof Error
+                            ? agentError.message
+                            : "Agent failed",
+                        recoverable: true,
+                      },
+                    })
+                  )
+                );
               }
-
-              controller.enqueue(
-                encoder.encode(
-                  formatSSEEvent({
-                    type: "agent_done",
-                    data: mockOutput,
-                  })
-                )
-              );
             }
           }
 
@@ -127,13 +153,22 @@ export async function POST(request: Request) {
           );
 
           const synthesisOutput = {
-            executive_summary: `Orchestration complete for: ${mission}`,
+            executive_summary: `Orchestration complete: ${plan.expected_deliverable}`,
             deliverable: {
-              type: "summary",
-              content: "Full orchestration pipeline executed successfully.",
+              type: plan.expected_deliverable,
+              agent_contributions: collectedEnvelopes.map(
+                (e: any) => `${e.agent}: ${e.reasoning}`
+              ),
+              confidence: collectedEnvelopes.reduce(
+                (sum: number, e: any) => sum + (e.confidence || 0),
+                0
+              ) / Math.max(collectedEnvelopes.length, 1),
             },
-            confidence: 0.75,
-            caveats: ["MVP: agents are stubs"],
+            total_agents_run: collectedEnvelopes.length,
+            total_duration_ms: collectedEnvelopes.reduce(
+              (sum: number, e: any) => sum + (e.timing_ms || 0),
+              0
+            ),
           };
 
           controller.enqueue(
