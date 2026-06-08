@@ -407,9 +407,59 @@ OUTPUT
   "variants": ["..."], "tone": "...", "confidence": 0.0, "caveats": ["..."] }
 ```
 
-### 5.6 Automation · Builder · Audit (waves 2–3, sketched)
+### 5.6 Automation agent — Workflow Architect
 
-- **Automation — Workflow Architect.** Framework: MAP process → DESIGN nodes → CONNECT tools. Tool: workflow-graph generator emitting n8n/Make-style JSON. Output: `{ steps[], integrations[], diagram, confidence }`.
+The Automation agent's superpower is a **verifiable artifact**: it doesn't describe a workflow in prose — it emits a real, **n8n-importable workflow JSON** the user can download and run. It is grounded by a structural validator + a fixed integration catalog (no hallucinated nodes), mirroring the Orchestrator's "select only from roster" discipline.
+
+```
+ROLE
+You are the Automation Agent, a workflow architect. You turn a business objective into
+a concrete, runnable automation — never a vague description. You think in triggers,
+actions, data mappings, and integrations, and you design for failure, not just the
+happy path.
+
+FRAMEWORK
+1. DECOMPOSE the objective into discrete steps: one trigger, then ordered actions and
+   decision branches.
+2. MAP each step to a node type + a concrete integration from the provided catalog.
+3. WIRE the data flow: state exactly what each node passes to the next (field mapping).
+4. HARDEN: add error branches, retries, and rate-limit awareness; insert a human
+   approval checkpoint before any irreversible or outward-facing action
+   (send, post, pay, delete).
+
+TOOLS
+- list_integrations() -> catalog of allowed node types + integrations
+- validate_workflow(json) -> { valid: bool, errors: [...] }
+Protocol: select node types/integrations ONLY from list_integrations(). The
+workflow_json you emit MUST pass validate_workflow; if it fails, revise and re-validate
+before returning. Every connection must reference a real step id.
+
+GUARDRAILS
+- Never invent a node type or a non-existent integration. Unknown capability → say so,
+  propose the closest catalog node, lower confidence.
+- Mark every outward-facing / irreversible step with a human_checkpoint. Never design
+  silent automation of actions that send data or move money.
+- No dangling edges; every step must be reachable from the trigger.
+
+OUTPUT
+{ "objective": "...",
+  "trigger": {"type":"...","integration":"...","description":"..."},
+  "steps": [{"id":"n1","node_type":"...","integration":"...","action":"...",
+             "inputs_from":["trigger"],"config_notes":"..."}],
+  "connections": [{"from":"n1","to":"n2","data_passed":"..."}],
+  "error_handling": ["..."],
+  "human_checkpoints": ["..."],
+  "integrations_required": ["..."],
+  "workflow_json": { /* n8n-importable: nodes[] + connections{} */ },
+  "diagram": { "nodes": [], "edges": [] },   /* drives the amber flow viz */
+  "confidence": 0.0, "caveats": ["..."] }
+```
+
+**Verifiable artifact:** `workflow_json` is a real **n8n-importable** workflow — top-level `{ nodes: [{ name, type, parameters, position }], connections: {} }` — rendered as a downloadable `.json` with an "import to n8n" affordance. *(Exact n8n node parameter schemas validated at build time; `validate_workflow` enforces structure: trigger present, real node refs, no orphan nodes.)*
+
+**Signature:** amber (`#FBBF24` / `#D97706`); motion = energy flowing along the workflow path, each node igniting amber as the current step travels the graph (the spec's "flowing connections, activated nodes").
+
+### 5.7 Builder · Audit (waves, sketched)
 - **Builder — Software Engineering Specialist.** Framework: SPEC → ARCHITECT → GENERATE → document. Tool: code-gen producing real file artifacts. Output: `{ architecture, files[{path,language,content}], notes, confidence }`.
 - **Audit — QA Specialist (the differentiator).** Framework: VALIDATE each envelope vs schema → CROSS-CHECK agents for contradictions → FLAG unsupported claims → SCORE. Rule-based first (schema/format), LLM second (semantic consistency). Output: `{ checks[{target,status,issue}], contradictions[], quality_score, blocking_issues[], confidence }`.
 
@@ -433,8 +483,8 @@ Flow: mission → conducting gesture → plan DAG materializes → agents ignite
 ## 7. Scope & phasing
 
 - **MVP (V1) — Orchestrator + Research + Data.** *(Adjusted from the original Orchestrator+Research+Content: Data is a stronger flex for AI/Data roles than marketing copy.)* Ships: real planner, real web-search Research, real stats Data, SSE streaming, the Neural Obsidian shell with core + 3 agent nodes + theme engine, one warmed showcase mission, Supabase run persistence + replay.
-- **Wave 2 — Content + Audit.** Content is trivial (LLM-only, grounded on blackboard). Audit is the QA differentiator.
-- **Wave 3 — Automation + Builder.** Full 7-agent roster + richer artifacts.
+- **Wave 2 — Automation (lead) + Content.** Automation is the standout next agent — it emits a uniquely *verifiable* artifact (an importable n8n workflow) and automation skills are highly employable; fully specced in §5.6. Content is the trivial add (LLM-only, grounded on the blackboard). *(Option: promote Automation into the opening cut as **MVP-4** for a 4-agent first demo — it's ready either way.)*
+- **Wave 3 — Audit + Builder.** Audit = QA differentiator (validates the chain); Builder = code-gen with real file artifacts. Completes the 7-agent roster.
 
 YAGNI guardrails: no auth, no multi-user, no billing in V1. Three.js is used **only** for the Orchestrator core orb — every other node is DOM + Framer Motion (perf + simplicity).
 
