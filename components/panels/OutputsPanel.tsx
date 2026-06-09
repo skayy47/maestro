@@ -2,10 +2,10 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Radio, Check, Sparkles, ChevronRight, Loader2, AlertTriangle } from "lucide-react";
+import { Radio, Check, Sparkles, ChevronRight, Loader2, AlertTriangle, PlayCircle } from "lucide-react";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { AGENTS, type AgentId } from "@/lib/agents/registry";
-import type { StreamEvent } from "@/lib/hooks/useOrchestraate";
+import type { StreamEvent, RunSource } from "@/lib/hooks/useOrchestraate";
 import type { AgentEnvelope, SynthesisOutput } from "@/lib/agents/envelopes";
 import { agentHighlight } from "@/lib/agents/highlight";
 import { DeliverableDrawer, type DrawerItem } from "@/components/deliverables/DeliverableDrawer";
@@ -13,9 +13,11 @@ import { DeliverableDrawer, type DrawerItem } from "@/components/deliverables/De
 interface OutputsPanelProps {
   events: StreamEvent[];
   loading: boolean;
+  source?: RunSource;
+  fellBack?: boolean;
 }
 
-export function OutputsPanel({ events, loading }: OutputsPanelProps) {
+export function OutputsPanel({ events, loading, source, fellBack }: OutputsPanelProps) {
   const [drawerItem, setDrawerItem] = useState<DrawerItem | null>(null);
 
   const agentDoneEvents = useMemo(
@@ -77,6 +79,33 @@ export function OutputsPanel({ events, loading }: OutputsPanelProps) {
     <>
       <GlassPanel eyebrow="Live Outputs" className="flex h-full flex-col overflow-hidden">
         <div className="flex-1 space-y-2.5 overflow-y-auto pr-0.5">
+          {/* SHOWCASE / FALLBACK notice — honest about cached runs (icon + text) */}
+          {source === "showcase" ? (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={
+                fellBack
+                  ? "rounded-lg border border-amber-400/30 bg-amber-400/[0.07] p-2.5"
+                  : "rounded-lg border border-accent/25 bg-accent/[0.06] p-2.5"
+              }
+            >
+              <div className="flex items-center gap-1.5">
+                <PlayCircle
+                  className={fellBack ? "h-3.5 w-3.5 text-amber-400" : "h-3.5 w-3.5 text-accent"}
+                />
+                <span className="font-display text-[11px] font-semibold text-text-primary">
+                  {fellBack ? "Showing a cached showcase" : "Showcase run"}
+                </span>
+              </div>
+              <p className="mt-1 text-[10.5px] leading-relaxed text-text-tertiary">
+                {fellBack
+                  ? "The live API was unavailable, so MAESTRO replayed a pre-baked run. Try Conduct again for a live result."
+                  : "A pre-baked run, replayed instantly — no API call. Conduct a mission of your own for a live result."}
+              </p>
+            </motion.div>
+          ) : null}
+
           {/* SCOPE NOTICE — honest about what's outside the roster */}
           {scope ? (
             <motion.div

@@ -17,7 +17,8 @@ import { WorkflowTimeline } from "@/components/timeline/WorkflowTimeline";
  * This ensures all panels share the same stream.
  */
 export function CommandCenter() {
-  const { events, loading, error, conduct, reset } = useOrchestrate();
+  const { events, loading, error, source, fellBack, conduct, playShowcase, reset } =
+    useOrchestrate();
 
   return (
     <main className="relative z-10 mx-auto flex min-h-dvh max-w-[1400px] flex-col gap-4 p-4 lg:p-6">
@@ -53,12 +54,18 @@ export function CommandCenter() {
           loading={loading}
           error={error}
           conduct={conduct}
+          onPlayShowcase={playShowcase}
           onReset={reset}
         />
         <div className="flex items-center justify-center py-6">
           <AgentOrbit />
         </div>
-        <OutputsPanel events={events} loading={loading} />
+        <OutputsPanel
+          events={events}
+          loading={loading}
+          source={source}
+          fellBack={fellBack}
+        />
       </div>
 
       {/* Execution timeline */}

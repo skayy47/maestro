@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, AlertCircle, RotateCcw, Paperclip, FileSpreadsheet, X } from "lucide-react";
+import { Sparkles, AlertCircle, RotateCcw, Paperclip, FileSpreadsheet, X, PlayCircle } from "lucide-react";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 
 const EXAMPLES = [
@@ -25,12 +25,14 @@ interface MissionPanelProps {
   error: string | null;
   /** Trigger a new orchestration run (optionally with an uploaded CSV). */
   conduct: (mission: string, csv?: CsvFile) => Promise<void>;
+  /** Instantly replay a pre-baked showcase run (no API/quota). */
+  onPlayShowcase: (id?: string) => void;
   /** Reset state and clear outputs. */
   onReset: () => void;
 }
 
 /** Left panel — where a mission is entered and conducted. */
-export function MissionPanel({ loading, error, conduct, onReset }: MissionPanelProps) {
+export function MissionPanel({ loading, error, conduct, onPlayShowcase, onReset }: MissionPanelProps) {
   const [mission, setMission] = useState("");
   const [csv, setCsv] = useState<CsvFile | null>(null);
   const [csvError, setCsvError] = useState<string | null>(null);
@@ -167,6 +169,18 @@ export function MissionPanel({ loading, error, conduct, onReset }: MissionPanelP
           </>
         )}
       </motion.button>
+
+      {/* Secondary: instant showcase replay (no API, always works) */}
+      <button
+        type="button"
+        onClick={() => onPlayShowcase()}
+        disabled={loading}
+        className="mt-2 flex items-center justify-center gap-1.5 rounded-lg py-1.5 font-mono text-[10px] text-text-tertiary transition hover:text-text-secondary disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        <PlayCircle className="h-3.5 w-3.5" />
+        or play a showcase run
+        <span className="text-text-tertiary/50">· instant, no API</span>
+      </button>
 
       {/* Status / error row */}
       <div className="mt-2 flex h-5 items-center justify-between">
