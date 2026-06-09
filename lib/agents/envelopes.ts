@@ -18,7 +18,7 @@ export interface ResearchOutput {
 }
 
 export interface DataOutput {
-  dataset_profile: { rows: number; cols: number; notes: string };
+  dataset_profile: { rows: number; cols: number; notes: string; data_source?: "uploaded" | "sample" };
   kpis: Array<{ label: string; value: string; trend: "up" | "down" | "flat" }>;
   findings: string[];
   charts: Array<{ type: "line" | "bar" | "scatter" | "pie"; title: string; x: string; y: string }>;

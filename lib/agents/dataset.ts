@@ -10,6 +10,8 @@
  *   - it is honestly labelled as an illustrative sample
  */
 
+import { mean, median, std } from "@/lib/agents/stats";
+
 /** Deterministic PRNG (mulberry32) so a mission always yields the same data. */
 function mulberry32(seed: number) {
   let a = seed >>> 0;
@@ -29,20 +31,6 @@ function hashStr(s: string): number {
     h = Math.imul(h, 16777619);
   }
   return h >>> 0;
-}
-
-function mean(xs: number[]): number {
-  return xs.reduce((a, b) => a + b, 0) / Math.max(xs.length, 1);
-}
-
-function median(xs: number[]): number {
-  const s = [...xs].sort((a, b) => a - b);
-  const mid = Math.floor(s.length / 2);
-  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
-}
-
-function std(xs: number[], m: number): number {
-  return Math.sqrt(mean(xs.map((x) => (x - m) ** 2)));
 }
 
 export interface DatasetSummary {

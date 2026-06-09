@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Radio, Check, Sparkles, ChevronRight, Loader2 } from "lucide-react";
+import { Radio, Check, Sparkles, ChevronRight, Loader2, AlertTriangle } from "lucide-react";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { AGENTS, type AgentId } from "@/lib/agents/registry";
 import type { StreamEvent } from "@/lib/hooks/useOrchestraate";
@@ -46,6 +46,16 @@ export function OutputsPanel({ events, loading }: OutputsPanelProps) {
     [events]
   );
 
+  // Honest scope notice — from the planner's scope_assessment.
+  const scope = useMemo(() => {
+    const plan = events.find((e) => e.type === "plan");
+    const sa = (plan?.data as any)?.scope_assessment;
+    if (sa && (sa.in_scope === false || (sa.missing_capabilities?.length ?? 0) > 0)) {
+      return sa as { in_scope: boolean; missing_capabilities: string[]; note: string };
+    }
+    return null;
+  }, [events]);
+
   // Empty state
   if (!loading && agentDoneEvents.length === 0 && !synthesis) {
     return (
@@ -67,6 +77,41 @@ export function OutputsPanel({ events, loading }: OutputsPanelProps) {
     <>
       <GlassPanel eyebrow="Live Outputs" className="flex h-full flex-col overflow-hidden">
         <div className="flex-1 space-y-2.5 overflow-y-auto pr-0.5">
+          {/* SCOPE NOTICE — honest about what's outside the roster */}
+          {scope ? (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-lg border border-amber-400/30 bg-amber-400/[0.07] p-3"
+            >
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
+                <span className="font-display text-[11px] font-semibold text-text-primary">
+                  Partly outside MAESTRO&apos;s roster
+                </span>
+              </div>
+              <p className="mt-1 text-[11px] leading-relaxed text-text-secondary">
+                {scope.note ||
+                  "Some of this mission needs capabilities the current agents don't cover."}
+              </p>
+              {scope.missing_capabilities?.length ? (
+                <div className="mt-1.5 flex flex-wrap gap-1">
+                  {scope.missing_capabilities.map((c, i) => (
+                    <span
+                      key={i}
+                      className="rounded-full border border-amber-400/25 bg-amber-400/[0.08] px-2 py-0.5 font-mono text-[9px] text-amber-200/90"
+                    >
+                      {c}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+              <p className="mt-1.5 font-mono text-[9px] text-text-tertiary">
+                the available agents still contributed what they can below
+              </p>
+            </motion.div>
+          ) : null}
+
           {/* SYNTHESIS HERO — the deliverable */}
           {synthesis ? (
             <motion.button

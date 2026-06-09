@@ -37,7 +37,8 @@ export function useOrchestrate() {
     events: [],
   });
 
-  const conduct = useCallback(async (mission: string) => {
+  const conduct = useCallback(
+    async (mission: string, csv?: { name: string; content: string }) => {
     if (!mission.trim()) {
       setState((s) => ({ ...s, error: "Mission cannot be empty" }));
       return;
@@ -49,7 +50,7 @@ export function useOrchestrate() {
       const response = await fetch("/api/orchestrate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mission }),
+        body: JSON.stringify({ mission, csv }),
       });
 
       if (!response.ok) {

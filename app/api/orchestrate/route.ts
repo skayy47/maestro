@@ -34,7 +34,11 @@ function formatSSEEvent(event: SSEEvent): string {
 
 export async function POST(request: Request) {
   try {
-    const { mission } = (await request.json()) as { mission: string };
+    const { mission, csv } = (await request.json()) as {
+      mission: string;
+      csv?: { name: string; content: string };
+    };
+    const csvContent = csv?.content?.trim() ? csv.content : undefined;
 
     if (!mission || !mission.trim()) {
       return new Response(
@@ -56,6 +60,17 @@ export async function POST(request: Request) {
           // Step 1: Plan the mission
           console.log("[MAESTRO] Planning mission:", mission);
           const plan = await planMission(mission);
+
+          // If the user uploaded a CSV, the Data agent MUST run even if the
+          // planner didn't select it — they explicitly gave data to analyze.
+          if (csvContent && !plan.execution_order.flat().includes("data")) {
+            plan.execution_order.push(["data"]);
+            plan.selected_agents.push({
+              agent: "data",
+              reason: "User uploaded a dataset to analyze.",
+              depends_on: [],
+            });
+          }
 
           controller.enqueue(
             encoder.encode(
@@ -87,7 +102,7 @@ export async function POST(request: Request) {
                 if (agentId === "research") {
                   envelope = await runResearch(mission, collectedEnvelopes);
                 } else if (agentId === "data") {
-                  envelope = await runData(mission, collectedEnvelopes);
+                  envelope = await runData(mission, collectedEnvelopes, csvContent);
                 } else if (agentId === "automation") {
                   envelope = await runAutomation(mission, collectedEnvelopes);
                 } else {

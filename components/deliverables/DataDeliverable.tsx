@@ -19,14 +19,28 @@ export function DataDeliverable({ output }: { output: DataOutput }) {
       {/* Dataset profile */}
       {output.dataset_profile ? (
         <div className="flex items-center gap-3 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2">
-          <BarChart3 className="h-4 w-4" style={{ color: ACCENT }} />
+          <BarChart3 className="h-4 w-4 shrink-0" style={{ color: ACCENT }} />
           <div className="flex-1">
-            <p className="font-mono text-[11px] text-text-primary">
-              {output.dataset_profile.rows?.toLocaleString()} rows ×{" "}
-              {output.dataset_profile.cols} cols
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="font-mono text-[11px] text-text-primary">
+                {output.dataset_profile.rows?.toLocaleString()} rows ×{" "}
+                {output.dataset_profile.cols} cols
+              </p>
+              {output.dataset_profile.data_source === "uploaded" ? (
+                <span
+                  className="rounded-full px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-wider"
+                  style={{ background: `${ACCENT}1F`, color: ACCENT }}
+                >
+                  your data
+                </span>
+              ) : output.dataset_profile.data_source === "sample" ? (
+                <span className="rounded-full bg-white/[0.06] px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-wider text-text-tertiary">
+                  sample
+                </span>
+              ) : null}
+            </div>
             {output.dataset_profile.notes ? (
-              <p className="text-[10.5px] text-text-tertiary">
+              <p className="mt-0.5 text-[10.5px] leading-snug text-text-tertiary">
                 {output.dataset_profile.notes}
               </p>
             ) : null}

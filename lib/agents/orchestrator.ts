@@ -14,11 +14,21 @@ export interface AgentSelection {
   depends_on: AgentId[];
 }
 
+export interface ScopeAssessment {
+  /** Can the mission be FULLY delivered by the current roster? */
+  in_scope: boolean;
+  /** Capabilities the mission needs that the roster lacks (content, code, audit…). */
+  missing_capabilities: string[];
+  /** One honest sentence for the user when something is out of scope. */
+  note: string;
+}
+
 export interface MissionPlan {
   mission_understanding: string;
   selected_agents: AgentSelection[];
   execution_order: AgentId[][];
   expected_deliverable: string;
+  scope_assessment?: ScopeAssessment;
 }
 
 const SYSTEM_PROMPT = `You are MAESTRO, the orchestrating intelligence of a multi-agent system. You are strategic, precise, and economical — you summon the minimum set of specialists a mission truly needs, never more.
@@ -44,10 +54,18 @@ FRAMEWORK
 4. SEQUENCE as a DAG: which agents depend on which?
 5. JUSTIFY each selection in one sentence.
 
+SCOPE ASSESSMENT (be honest — do not silently substitute)
+The roster covers: market RESEARCH, DATA analysis, and AUTOMATION/workflow design.
+It does NOT cover: content writing/copywriting, software/code building, formal
+QA/audit/fact-checking, visual design, or anything unrelated to business/market work.
+- If the mission can be fully delivered by the roster → in_scope=true, missing_capabilities=[].
+- If it primarily or partly needs an out-of-roster capability → in_scope=false, list
+  the missing capabilities plainly, and write a one-sentence honest note. Still select
+  the roster agents that CAN contribute — but never pretend a research brief is the
+  blog post / code / audit the user actually asked for.
+
 GUARDRAILS
 - If the mission is ambiguous, state your assumption in mission_understanding.
-- Be honest about what you can't do: if a mission needs an agent not in the roster,
-  say so in mission_understanding.
 - Output ONLY valid JSON matching the MissionPlan schema. No prose outside JSON.
 
 EXAMPLE
@@ -74,7 +92,8 @@ Respond with ONLY a JSON object matching this schema:
     {"agent": "data", "reason": "...", "depends_on": ["research"]}
   ],
   "execution_order": [["research"], ["data"]],
-  "expected_deliverable": "what the final output will be"
+  "expected_deliverable": "what the final output will be",
+  "scope_assessment": {"in_scope": true, "missing_capabilities": [], "note": ""}
 }`;
 
   return callGroqJSON<MissionPlan>(userPrompt, SYSTEM_PROMPT, {

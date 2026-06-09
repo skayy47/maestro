@@ -6,12 +6,14 @@
 
 import { callGroqJSON } from "@/lib/llm/groq";
 import { generateSyntheticDataset } from "@/lib/agents/dataset";
+import { analyzeCsv } from "@/lib/agents/csv";
 
 export interface DataOutput {
   dataset_profile: {
     rows: number;
     cols: number;
     notes: string;
+    data_source?: "uploaded" | "sample";
   };
   kpis: Array<{
     label: string;
@@ -77,44 +79,69 @@ Output ONLY a valid JSON object:
 
 export async function runData(
   dataQuery: string,
-  blackboard: unknown[] = []
+  blackboard: unknown[] = [],
+  csv?: string
 ): Promise<AgentEnvelope> {
   const startTime = Date.now();
   let reasoning = "";
   let output: DataOutput;
 
   try {
-    reasoning = `Analyzing data query: "${dataQuery}"`;
+    // Branch: real uploaded CSV vs mission-seeded illustrative sample.
+    let dataSummary: unknown;
+    let profile: DataOutput["dataset_profile"];
+    let series: number[];
 
-    // Mission-seeded synthetic dataset with REAL computed stats (varies per
-    // mission; honestly labelled). Replaces the old fixed mock.
-    const dataset = generateSyntheticDataset(dataQuery);
+    if (csv && csv.trim()) {
+      const analysis = analyzeCsv(csv);
+      reasoning = `Analyzing your uploaded CSV (${analysis.rows} rows × ${analysis.cols} cols)`;
+      dataSummary = analysis;
+      profile = {
+        rows: analysis.rows,
+        cols: analysis.cols,
+        notes: analysis.note,
+        data_source: "uploaded",
+      };
+      series = analysis.series?.points ?? [];
+    } else {
+      // Mission-seeded synthetic dataset with REAL computed stats (varies per
+      // mission; honestly labelled). Used when no CSV is uploaded.
+      const dataset = generateSyntheticDataset(dataQuery);
+      reasoning = `Analyzing data query: "${dataQuery}"`;
+      dataSummary = dataset;
+      profile = {
+        rows: dataset.rows,
+        cols: dataset.cols,
+        notes: dataset.note,
+        data_source: "sample",
+      };
+      series = dataset.series;
+    }
+
+    const sourceLabel =
+      profile.data_source === "uploaded"
+        ? "the user's REAL uploaded dataset"
+        : "an illustrative sample dataset";
 
     const userPrompt = `Analyze this data and provide structured intelligence:
 
 Query: "${dataQuery}"
 
-Data Summary (computed statistics from a sample dataset):
-${JSON.stringify(dataset, null, 2)}
+Data Summary (computed statistics from ${sourceLabel}):
+${JSON.stringify(dataSummary, null, 2)}
 
-Generate KPIs, findings, and chart recommendations grounded in these stats.
-Tie your insights to the mission domain.`;
+Generate KPIs, findings, and chart recommendations grounded ONLY in these computed stats.
+Use the real column names where available. Tie your insights to the mission domain.`;
 
     output = await callGroqJSON<DataOutput>(userPrompt, SYSTEM_PROMPT, {
       max_tokens: 1024,
       temperature: 0.5,
     });
 
-    // Lock the dataset profile to the real generated numbers + honest label
-    // (the LLM sometimes echoes stale values).
-    output.dataset_profile = {
-      rows: dataset.rows,
-      cols: dataset.cols,
-      notes: dataset.note,
-    };
-
-    // Attach the REAL computed series so the UI can draw an actual chart.
-    output.series = dataset.series;
+    // Lock the profile + series to the real computed values (the LLM sometimes
+    // echoes stale numbers).
+    output.dataset_profile = profile;
+    output.series = series;
 
     reasoning += ` — computed KPIs and insights.`;
   } catch (error) {
