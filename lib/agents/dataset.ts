@@ -55,6 +55,8 @@ export interface DatasetSummary {
     satisfaction: { mean: number };
   };
   trends: { revenue: "increasing" | "decreasing" | "stable"; units: "increasing" | "decreasing" | "stable" };
+  /** 12 monthly revenue points (real, aggregated from the series) for charting. */
+  series: number[];
   note: string;
 }
 
@@ -86,6 +88,13 @@ export function generateSyntheticDataset(mission: string): DatasetSummary {
   const revMean = mean(revenue);
   const trendStrength = revGrowth - 0.4;
 
+  // Aggregate the revenue series into 12 monthly buckets (real averages).
+  const buckets = 12;
+  const per = Math.floor(revenue.length / buckets);
+  const series = Array.from({ length: buckets }, (_, b) =>
+    Math.round(mean(revenue.slice(b * per, (b + 1) * per)))
+  );
+
   return {
     rows,
     cols: 6 + Math.floor(rand() * 4), // 6–9
@@ -101,6 +110,7 @@ export function generateSyntheticDataset(mission: string): DatasetSummary {
       units: { mean: Math.round(mean(units)), median: Math.round(median(units)) },
       satisfaction: { mean: Number(mean(satisfaction).toFixed(2)) },
     },
+    series,
     trends: {
       revenue: trendStrength > 0.12 ? "increasing" : trendStrength < -0.12 ? "decreasing" : "stable",
       units: rand() > 0.5 ? "increasing" : "stable",

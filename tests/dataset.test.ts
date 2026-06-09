@@ -34,4 +34,10 @@ describe("generateSyntheticDataset", () => {
     expect(d.note.toLowerCase()).toContain("sample");
     expect(d.rows).toBeGreaterThan(0);
   });
+
+  it("produces a 12-point chartable series of real numbers", () => {
+    const d = generateSyntheticDataset("fitness coaching");
+    expect(d.series).toHaveLength(12);
+    expect(d.series.every((n) => typeof n === "number" && n > 0)).toBe(true);
+  });
 });

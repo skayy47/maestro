@@ -3,6 +3,7 @@
 import { TrendingUp, TrendingDown, Minus, BarChart3 } from "lucide-react";
 import type { DataOutput } from "@/lib/agents/envelopes";
 import { Section, Chip, BulletList, ConfidenceBar, Caveats } from "./primitives";
+import { MiniChart } from "./MiniChart";
 
 const ACCENT = "#2DD4BF"; // data teal
 
@@ -56,6 +57,15 @@ export function DataDeliverable({ output }: { output: DataOutput }) {
                 </p>
               </div>
             ))}
+          </div>
+        </Section>
+      ) : null}
+
+      {/* Real chart — the computed monthly revenue series */}
+      {output.series && output.series.length > 1 ? (
+        <Section label="Revenue trend (12 mo)">
+          <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
+            <MiniChart data={output.series} accent={ACCENT} height={70} label="Monthly revenue" />
           </div>
         </Section>
       ) : null}

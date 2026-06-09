@@ -24,6 +24,8 @@ export interface DataOutput {
   charts: Array<{ type: "line" | "bar" | "scatter" | "pie"; title: string; x: string; y: string }>;
   insights: string[];
   recommendations: string[];
+  /** Real monthly revenue series (computed) — rendered as an inline chart. */
+  series?: number[];
   confidence: number;
   caveats: string[];
 }

@@ -27,6 +27,7 @@ export interface DataOutput {
   }>;
   insights: string[];
   recommendations: string[];
+  series?: number[];
   confidence: number;
   caveats: string[];
 }
@@ -111,6 +112,9 @@ Tie your insights to the mission domain.`;
       cols: dataset.cols,
       notes: dataset.note,
     };
+
+    // Attach the REAL computed series so the UI can draw an actual chart.
+    output.series = dataset.series;
 
     reasoning += ` — computed KPIs and insights.`;
   } catch (error) {

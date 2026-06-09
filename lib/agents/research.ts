@@ -44,14 +44,19 @@ export interface AgentEnvelope {
   timing_ms: number;
 }
 
-async function searchTavily(query: string): Promise<string> {
+interface TavilyResponse {
+  results: Array<{ title: string; url: string; content: string }>;
+  answer: string;
+}
+
+async function searchTavily(query: string): Promise<TavilyResponse> {
   const response = await fetch("https://api.tavily.com/search", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       api_key: getTavilyKey(),
       query,
-      max_results: 5,
+      max_results: 8, // richer sourcing — more results to triangulate
       include_answer: true,
     }),
   });
@@ -60,11 +65,7 @@ async function searchTavily(query: string): Promise<string> {
     throw new Error(`Tavily API error: ${response.statusText}`);
   }
 
-  const data = (await response.json()) as {
-    results: Array<{ title: string; url: string; content: string }>;
-    answer: string;
-  };
-  return JSON.stringify(data);
+  return (await response.json()) as TavilyResponse;
 }
 
 const SYSTEM_PROMPT = `You are the Research Agent, a market-intelligence specialist. You are rigorous and source-driven; you never state a market fact you did not retrieve.
@@ -84,13 +85,19 @@ GUARDRAILS
 - Distinguish fact (sourced) from inference (your analysis) in the output.
 - Carry forward all source URLs so the user can verify.
 
+DEPTH REQUIREMENTS (a thin brief reads as low-effort)
+- trends: 3–5 distinct, specific trends.
+- competitors: 3–4 real players, each with concrete positioning + a real weakness/gap.
+- opportunities: 3–4 actionable opportunities tied to the gaps you found.
+- sources: list every source you used (the system will also attach the real URLs).
+
 Output ONLY a valid JSON object matching this schema:
 {
   "headline": "one-line summary",
   "market_overview": "2-3 sentence context",
-  "trends": ["trend 1", "trend 2"],
+  "trends": ["trend 1", "trend 2", "trend 3"],
   "competitors": [{"name":"...","positioning":"...","weakness":"..."}],
-  "opportunities": ["opportunity 1"],
+  "opportunities": ["opportunity 1", "opportunity 2", "opportunity 3"],
   "sources": [{"title":"...","url":"..."}],
   "confidence": 0.0,
   "caveats": ["caveat"]
@@ -108,8 +115,13 @@ export async function runResearch(
     reasoning = `Searching for: "${userQuery}"`;
 
     // Search Tavily
-    const searchResults = await searchTavily(userQuery);
-    reasoning += ` — found results, analyzing sources...`;
+    const tavily = await searchTavily(userQuery);
+    reasoning += ` — found ${tavily.results.length} results, analyzing sources...`;
+
+    // The REAL, verifiable sources straight from Tavily (never LLM-generated URLs).
+    const realSources = tavily.results
+      .filter((r) => r.url)
+      .map((r) => ({ title: r.title || r.url, url: r.url }));
 
     // Call Research agent via Groq
     const userPrompt = `Analyze this web search result and extract structured intelligence:
@@ -117,17 +129,22 @@ export async function runResearch(
 Query: "${userQuery}"
 
 Search Results:
-${searchResults}
+${JSON.stringify(tavily)}
 
 Provide a structured research briefing.`;
 
     output = await callGroqJSON<ResearchOutput>(
       userPrompt,
       SYSTEM_PROMPT,
-      { max_tokens: 1024, temperature: 0.5 }
+      { max_tokens: 1400, temperature: 0.5 }
     );
 
-    reasoning += ` — synthesized findings.`;
+    // Override sources with the REAL Tavily URLs — guaranteed clickable + honest.
+    if (realSources.length) {
+      output.sources = realSources;
+    }
+
+    reasoning += ` — synthesized findings from ${realSources.length} sources.`;
   } catch (error) {
     console.error("[Research] Error:", error);
     return {
