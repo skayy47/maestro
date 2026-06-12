@@ -167,24 +167,25 @@ Agents return `AgentEnvelope<T>` — a typed structure carrying status, confiden
 
 ---
 
-## Design system: Neural Obsidian
+## Design system: Ivory Cognition
 
-A custom design system built for cognitive focus in high-information, real-time interfaces:
+A custom design system built for cognitive clarity in high-information, real-time interfaces:
 
-- **Near-black surfaces** (`obsidian-950`/`900`) with dark liquid glass panels and subtle borders
-- **7 bioluminescent per-agent accent colors** — each agent has a distinct identity across the UI
-- **Single `--agent` CSS variable** — one property drives the entire active-agent aesthetic (glow, borders, chips, timeline state)
+- **Light premium surfaces** (`#F7F9FC` body / `#FFFFFF` glass) — white Liquid Glass panels with `rgba(255,255,255,0.72)` + `blur(20px)` + layered shadow
+- **Indigo-ink typography** (`#1E1B4B` primary / `#475569` secondary) — WCAG-compliant contrast on every surface
+- **7 per-agent accent colors** deepened for legibility on light (`#hex_neon` → `#hex_deep`) — each agent has a distinct visual identity across orbit, timeline, and deliverable
+- **Single `--agent` CSS variable** — one property drives the entire active-agent aesthetic (glow rings, borders, chips, timeline pulse, orb)
 - **Framer Motion** with streaming-state animations, entry staggering, and `prefers-reduced-motion` compliance
 
 | Agent | Color | Identity |
 |---|---|---|
 | 🎼 Orchestrator | `#7C3AED` violet | Command, synthesis, planning |
-| 🔍 Research | `#0EA5E9` sky | Intelligence, clarity, depth |
-| 📊 Data | `#2DD4BF` teal | Precision, signal, truth |
-| ⚡ Automation | `#F59E0B` amber | Energy, execution, flow |
-| ✍️ Content | `#10B981` emerald | Voice, narrative *(Wave 2)* |
-| 🏗️ Builder | `#6366F1` indigo | Structure, creation *(Wave 3)* |
-| 🔬 Audit | `#EF4444` rose | Rigor, verification *(Wave 3)* |
+| 🔍 Research | `#0891B2` cyan | Intelligence, clarity, depth |
+| 📊 Data | `#0D9488` teal | Precision, signal, truth |
+| ⚡ Automation | `#D97706` amber | Energy, execution, flow |
+| ✍️ Content | `#C026D3` fuchsia | Voice, narrative *(Wave 2)* |
+| 🏗️ Builder | `#16A34A` green | Structure, creation *(Wave 3)* |
+| 🔬 Audit | `#E11D48` rose | Rigor, verification *(Wave 3)* |
 
 ---
 
@@ -196,7 +197,7 @@ A custom design system built for cognitive focus in high-information, real-time 
 | **LLM** | Groq — Llama 3.3 70B → 3.1 8B fallback | JSON mode for structured output; fallback chain for free-tier reliability |
 | **Web search** | Tavily API | Grounded real-web results with source URLs |
 | **Streaming** | Next.js `ReadableStream` + SSE | Live event delivery to the UI without polling |
-| **UI** | Tailwind CSS + Framer Motion | Neural Obsidian design system |
+| **UI** | Tailwind CSS + Framer Motion | Ivory Cognition design system (light premium, WCAG-compliant) |
 | **Charts** | Hand-rolled SVG area chart | Zero dependencies; full control over the gradient fill + trend badge |
 | **Testing** | Vitest | 48 unit tests over pure orchestration logic |
 | **Deployment** | Vercel | Auto-deploy on `git push main` |
