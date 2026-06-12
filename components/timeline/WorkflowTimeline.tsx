@@ -86,8 +86,8 @@ export function WorkflowTimeline({ events, loading }: WorkflowTimelineProps) {
                   className="mx-3 h-px flex-1 transition-all duration-500"
                   style={{
                     background: isDone
-                      ? `linear-gradient(90deg, rgb(${a.rgb} / 0.4), rgba(255,255,255,0.05))`
-                      : "linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))",
+                      ? `linear-gradient(90deg, rgb(${a.rgb} / 0.45), rgba(30,27,75,0.06))`
+                      : "linear-gradient(90deg, rgba(30,27,75,0.12), rgba(30,27,75,0.04))",
                   }}
                 />
               ) : null}

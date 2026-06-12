@@ -80,7 +80,7 @@ export function MissionPanel({ loading, error, conduct, onPlayShowcase, onReset 
         onKeyDown={handleKeyDown}
         placeholder="Give MAESTRO a mission…"
         disabled={loading}
-        className="min-h-[120px] flex-1 resize-none rounded-xl border border-white/[0.05] bg-obsidian-900/60 p-3 font-sans text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent/50 focus:outline-none focus:ring-1 focus:ring-accent/40 disabled:opacity-50"
+        className="min-h-[120px] flex-1 resize-none rounded-xl border border-lift/[0.10] bg-obsidian-700/70 p-3 font-sans text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent/50 focus:outline-none focus:ring-1 focus:ring-accent/40 disabled:opacity-50"
       />
 
       {/* Example mission chips */}
@@ -91,7 +91,7 @@ export function MissionPanel({ loading, error, conduct, onPlayShowcase, onReset 
             type="button"
             disabled={loading}
             onClick={() => setMission(ex)}
-            className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-2.5 py-1.5 text-left font-mono text-[10px] leading-snug text-text-secondary transition hover:border-accent/40 hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-lg border border-lift/[0.09] bg-lift/[0.03] px-2.5 py-1.5 text-left font-mono text-[10px] leading-snug text-text-secondary transition hover:border-accent/40 hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-40"
           >
             {ex}
           </button>
@@ -110,9 +110,9 @@ export function MissionPanel({ loading, error, conduct, onPlayShowcase, onReset 
         {csv ? (
           <div
             className="flex items-center gap-2 rounded-lg border px-2.5 py-1.5"
-            style={{ borderColor: "rgb(45 212 191 / 0.35)", background: "rgb(45 212 191 / 0.08)" }}
+            style={{ borderColor: "rgb(13 148 136 / 0.4)", background: "rgb(13 148 136 / 0.10)" }}
           >
-            <FileSpreadsheet className="h-3.5 w-3.5 shrink-0" style={{ color: "#2DD4BF" }} />
+            <FileSpreadsheet className="h-3.5 w-3.5 shrink-0" style={{ color: "#0D9488" }} />
             <span className="flex-1 truncate font-mono text-[10px] text-text-secondary">
               {csv.name}
             </span>
@@ -132,14 +132,14 @@ export function MissionPanel({ loading, error, conduct, onPlayShowcase, onReset 
             type="button"
             disabled={loading}
             onClick={() => fileRef.current?.click()}
-            className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-white/[0.12] px-2.5 py-1.5 font-mono text-[10px] text-text-tertiary transition hover:border-accent/40 hover:text-text-secondary disabled:opacity-40"
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-lift/[0.18] px-2.5 py-1.5 font-mono text-[10px] text-text-tertiary transition hover:border-accent/40 hover:text-text-secondary disabled:opacity-40"
           >
             <Paperclip className="h-3 w-3" />
             Attach a CSV for real data analysis
           </button>
         )}
         {csvError ? (
-          <p className="mt-1 font-mono text-[9px] text-red-400">{csvError}</p>
+          <p className="mt-1 font-mono text-[9px] text-rose-600">{csvError}</p>
         ) : null}
       </div>
 
@@ -185,7 +185,7 @@ export function MissionPanel({ loading, error, conduct, onPlayShowcase, onReset 
       {/* Status / error row */}
       <div className="mt-2 flex h-5 items-center justify-between">
         {error ? (
-          <p className="flex items-center gap-1.5 font-mono text-[10px] text-red-400">
+          <p className="flex items-center gap-1.5 font-mono text-[10px] text-rose-600">
             <AlertCircle className="h-3 w-3 shrink-0" />
             <span className="truncate">{error}</span>
           </p>

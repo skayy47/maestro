@@ -1,21 +1,21 @@
 /**
- * Neural Obsidian — design scalars consumed by JS/TS (motion, layout, depth).
+ * Ivory Cognition — design scalars consumed by JS/TS (motion, layout, depth).
  * Color identities live in lib/agents/registry.ts (the single source of truth
  * for per-agent color), and the Tailwind theme mirrors these values.
  */
 
-export const OBSIDIAN = {
-  void: "#050609",
-  900: "#0A0C12",
-  800: "#0F121A",
-  700: "#161A24",
-  600: "#1E2330",
+export const SURFACE = {
+  void: "#EEF1F8",
+  900: "#F7F9FC",
+  800: "#FFFFFF",
+  700: "#EEF1F7",
+  600: "#E3E8F1",
 } as const;
 
 export const TEXT = {
-  primary: "#F4F6FB",
-  secondary: "#A8B0C0",
-  tertiary: "#5C6678",
+  primary: "#1E1B4B",
+  secondary: "#475569",
+  tertiary: "#64748B",
 } as const;
 
 /** Organic motion language — spring + eased, never linear. */
@@ -27,10 +27,10 @@ export const MOTION = {
   themeShiftMs: 600,
 } as const;
 
-/** Glass treatment tokens (dark Liquid Glass). */
+/** Glass treatment tokens (light Liquid Glass). */
 export const GLASS = {
-  bg: "rgba(15,18,26,0.55)",
+  bg: "rgba(255,255,255,0.72)",
   blur: "20px",
   saturate: "140%",
-  hairline: "rgba(255,255,255,0.07)",
+  hairline: "rgba(30,27,75,0.07)",
 } as const;

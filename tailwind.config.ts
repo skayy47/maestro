@@ -1,10 +1,18 @@
 import type { Config } from "tailwindcss";
 
 /**
- * Neural Obsidian — MAESTRO design system.
+ * Ivory Cognition — MAESTRO light premium design system.
+ *
  * The `accent` colors are driven at runtime by the active agent via CSS vars
  * (--agent-rgb / --agent-deep-rgb), so any `*-accent` utility breathes with the
- * theme engine. Static agent colors live under `agent-*`.
+ * theme engine. Static agent colors live under `agent-*` (deepened for legible
+ * contrast on the light surface — they keep their hue identity).
+ *
+ * Token keys are kept stable to avoid churn across every component:
+ *  - `obsidian.*` is now the Ivory SURFACE ramp (900 = page, 800 = raised card).
+ *  - `text.*` is now the INK ramp (primary = indigo-ink, never pure black).
+ *  - `lift` is an indigo-ink tint for the faint "raised surface" fills/borders
+ *    that used to be white-on-dark (white-alpha is invisible on a light surface).
  */
 const config: Config = {
   content: [
@@ -15,30 +23,34 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        void: "#050609",
+        // Ivory surface ramp (was the dark obsidian ramp; keys kept stable).
+        void: "#EEF1F8",
         obsidian: {
-          900: "#0A0C12",
-          800: "#0F121A",
-          700: "#161A24",
-          600: "#1E2330",
+          900: "#F7F9FC", // page base
+          800: "#FFFFFF", // raised card / input
+          700: "#EEF1F7", // sunken
+          600: "#E3E8F1", // deepest divider fill
         },
+        // Ink ramp — premium indigo-tinted text, all AA+ on white.
         text: {
-          primary: "#F4F6FB",
-          secondary: "#A8B0C0",
-          tertiary: "#5C6678",
+          primary: "#1E1B4B",
+          secondary: "#475569",
+          tertiary: "#64748B",
         },
+        // Indigo-ink tint for faint raised-surface fills/borders on light.
+        lift: "rgb(30 27 75 / <alpha-value>)",
         // Live theme accent — follows the active agent.
         accent: "rgb(var(--agent-rgb) / <alpha-value>)",
         "accent-deep": "rgb(var(--agent-deep-rgb) / <alpha-value>)",
-        // Static per-agent identities.
+        // Static per-agent identities — deepened for contrast on the light surface.
         agent: {
-          orchestrator: "#A78BFA",
-          research: "#22D3EE",
-          content: "#E879F9",
-          data: "#2DD4BF",
-          automation: "#FBBF24",
-          builder: "#4ADE80",
-          audit: "#FB7185",
+          orchestrator: "#7C3AED",
+          research: "#0891B2",
+          content: "#C026D3",
+          data: "#0D9488",
+          automation: "#D97706",
+          builder: "#16A34A",
+          audit: "#E11D48",
         },
       },
       fontFamily: {
@@ -50,8 +62,9 @@ const config: Config = {
         glass: "1.25rem",
       },
       boxShadow: {
-        glass: "0 8px 40px -12px rgba(0,0,0,0.7)",
-        "glow-accent": "0 0 40px -10px rgb(var(--agent-rgb) / 0.5)",
+        // Soft, layered ambient shadow for the light premium surface.
+        glass: "0 1px 2px rgba(30,27,75,0.04), 0 12px 32px -16px rgba(30,27,75,0.18)",
+        "glow-accent": "0 0 40px -10px rgb(var(--agent-rgb) / 0.45)",
       },
       keyframes: {
         breathe: {

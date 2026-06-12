@@ -5,11 +5,11 @@ import type { DataOutput } from "@/lib/agents/envelopes";
 import { Section, Chip, BulletList, ConfidenceBar, Caveats } from "./primitives";
 import { MiniChart } from "./MiniChart";
 
-const ACCENT = "#2DD4BF"; // data teal
+const ACCENT = "#0D9488"; // data teal (deepened for light surface)
 
 function TrendIcon({ trend }: { trend: "up" | "down" | "flat" }) {
-  if (trend === "up") return <TrendingUp className="h-3.5 w-3.5 text-emerald-400" />;
-  if (trend === "down") return <TrendingDown className="h-3.5 w-3.5 text-rose-400" />;
+  if (trend === "up") return <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />;
+  if (trend === "down") return <TrendingDown className="h-3.5 w-3.5 text-rose-500" />;
   return <Minus className="h-3.5 w-3.5 text-text-tertiary" />;
 }
 
@@ -18,7 +18,7 @@ export function DataDeliverable({ output }: { output: DataOutput }) {
     <div className="space-y-5">
       {/* Dataset profile */}
       {output.dataset_profile ? (
-        <div className="flex items-center gap-3 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2">
+        <div className="flex items-center gap-3 rounded-lg border border-lift/[0.09] bg-lift/[0.03] px-3 py-2">
           <BarChart3 className="h-4 w-4 shrink-0" style={{ color: ACCENT }} />
           <div className="flex-1">
             <div className="flex items-center gap-2">
@@ -34,7 +34,7 @@ export function DataDeliverable({ output }: { output: DataOutput }) {
                   your data
                 </span>
               ) : output.dataset_profile.data_source === "sample" ? (
-                <span className="rounded-full bg-white/[0.06] px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-wider text-text-tertiary">
+                <span className="rounded-full bg-lift/[0.08] px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-wider text-text-tertiary">
                   sample
                 </span>
               ) : null}
@@ -55,7 +55,7 @@ export function DataDeliverable({ output }: { output: DataOutput }) {
             {output.kpis.map((kpi, i) => (
               <div
                 key={i}
-                className="rounded-lg border border-white/[0.06] bg-gradient-to-br from-white/[0.04] to-transparent p-3"
+                className="rounded-lg border border-lift/[0.09] bg-gradient-to-br from-lift/[0.05] to-transparent p-3"
               >
                 <div className="flex items-center justify-between">
                   <p className="font-mono text-[9px] uppercase tracking-wider text-text-tertiary">
@@ -78,7 +78,7 @@ export function DataDeliverable({ output }: { output: DataOutput }) {
       {/* Real chart — the computed monthly revenue series */}
       {output.series && output.series.length > 1 ? (
         <Section label="Revenue trend (12 mo)">
-          <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
+          <div className="rounded-lg border border-lift/[0.09] bg-lift/[0.03] p-3">
             <MiniChart data={output.series} accent={ACCENT} height={70} label="Monthly revenue" />
           </div>
         </Section>
@@ -98,7 +98,7 @@ export function DataDeliverable({ output }: { output: DataOutput }) {
             {output.insights.map((insight, i) => (
               <p
                 key={i}
-                className="rounded-lg border-l-2 bg-white/[0.02] py-1.5 pl-3 pr-2 text-[12.5px] leading-relaxed text-text-secondary"
+                className="rounded-lg border-l-2 bg-lift/[0.03] py-1.5 pl-3 pr-2 text-[12.5px] leading-relaxed text-text-secondary"
                 style={{ borderColor: ACCENT }}
               >
                 {insight}

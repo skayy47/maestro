@@ -42,6 +42,9 @@ const reducedMotion = () =>
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** Hard ceiling on a single live run before we abort and fall back. */
+const LIVE_TIMEOUT_MS = 45000;
+
 /** Per-event pacing so a replay feels like a live performance. */
 function delayFor(event: StreamEvent): number {
   if (reducedMotion()) return 0;
@@ -72,10 +75,19 @@ export function useOrchestrate() {
 
   // Token to cancel a stale replay when a new run starts.
   const runIdRef = useRef(0);
+  // Controller for the in-flight live fetch, so we can abort it (timeout,
+  // reset, or a new run superseding it) instead of leaking a stream.
+  const abortRef = useRef<AbortController | null>(null);
+
+  const cancelInFlight = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+  }, []);
 
   /** Replay a cached event sequence with staggered timing. */
   const replay = useCallback(
     async (events: StreamEvent[], opts: { fellBack: boolean }) => {
+      cancelInFlight();
       const myRun = ++runIdRef.current;
       setState({
         loading: true,
@@ -94,7 +106,7 @@ export function useOrchestrate() {
         setState((s) => ({ ...s, loading: false }));
       }
     },
-    []
+    [cancelInFlight]
   );
 
   const playShowcase = useCallback(
@@ -109,16 +121,22 @@ export function useOrchestrate() {
         return;
       }
 
+      cancelInFlight();
       const myRun = ++runIdRef.current;
       setState({ loading: true, error: null, events: [], source: "live", fellBack: false });
 
       const collected: StreamEvent[] = [];
+      const controller = new AbortController();
+      abortRef.current = controller;
+      // Don't let a hung server spin forever — abort and fall back.
+      const timeout = setTimeout(() => controller.abort(), LIVE_TIMEOUT_MS);
 
       try {
         const response = await fetch("/api/orchestrate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ mission, csv }),
+          signal: controller.signal,
         });
 
         if (!response.ok) throw new Error(`API error ${response.status}: ${response.statusText}`);
@@ -166,20 +184,25 @@ export function useOrchestrate() {
 
         setState((s) => ({ ...s, loading: false }));
       } catch (err) {
+        // Superseded by a newer run or a deliberate reset → stay silent.
         if (runIdRef.current !== myRun) return;
         const message = err instanceof Error ? err.message : "Unknown error";
         console.error("[useOrchestrate] live error, falling back to showcase:", message);
-        // Hard failure (network/server) → graceful showcase fallback.
+        // Hard failure (network/server/timeout) → graceful showcase fallback.
         await replay(getShowcase().events, { fellBack: true });
+      } finally {
+        clearTimeout(timeout);
+        if (abortRef.current === controller) abortRef.current = null;
       }
     },
-    [replay]
+    [replay, cancelInFlight]
   );
 
   const reset = useCallback(() => {
+    cancelInFlight();
     runIdRef.current++;
     setState({ loading: false, error: null, events: [], source: null, fellBack: false });
-  }, []);
+  }, [cancelInFlight]);
 
   return { ...state, conduct, playShowcase, reset };
 }

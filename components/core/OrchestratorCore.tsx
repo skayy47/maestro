@@ -73,9 +73,9 @@ export function OrchestratorCore() {
         className="relative grid h-28 w-28 place-items-center overflow-hidden rounded-full"
         style={{
           background:
-            "radial-gradient(circle at 50% 35%, rgb(var(--agent-rgb) / 0.95), rgb(var(--agent-deep-rgb) / 0.5) 58%, rgba(10,12,18,0.92))",
+            "radial-gradient(circle at 50% 32%, rgb(var(--agent-rgb) / 1), rgb(var(--agent-deep-rgb) / 0.92) 62%, rgb(var(--agent-deep-rgb) / 0.78))",
           boxShadow:
-            "0 0 60px -8px var(--agent), inset 0 0 28px -10px rgba(255,255,255,0.9)",
+            "0 12px 40px -8px rgb(var(--agent-rgb) / 0.55), inset 0 1px 14px -4px rgba(255,255,255,0.85)",
         }}
         animate={{ scale: [1, 1.04, 1] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}

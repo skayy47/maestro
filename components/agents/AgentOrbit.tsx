@@ -28,7 +28,7 @@ export function AgentOrbit() {
         style={{
           width: "84%",
           height: "84%",
-          borderColor: "rgba(167,139,250,0.1)",
+          borderColor: "rgba(124,58,237,0.14)",
         }}
       />
 

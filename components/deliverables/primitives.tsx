@@ -35,9 +35,9 @@ export function Chip({
     <span
       className="inline-flex items-center rounded-full border px-2.5 py-1 font-mono text-[10px] leading-none"
       style={{
-        borderColor: accent ? `${accent}40` : "rgba(255,255,255,0.1)",
-        background: accent ? `${accent}12` : "rgba(255,255,255,0.03)",
-        color: accent ?? "#A8B0C0",
+        borderColor: accent ? `${accent}40` : "rgba(30,27,75,0.12)",
+        background: accent ? `${accent}12` : "rgba(30,27,75,0.04)",
+        color: accent ?? "#475569",
       }}
     >
       {children}
@@ -60,7 +60,7 @@ export function BulletList({
     <ul className="space-y-1.5">
       {items.map((item, i) => (
         <li key={i} className="flex gap-2 text-[12.5px] leading-relaxed text-text-secondary">
-          <span className="mt-0.5 shrink-0 font-mono text-[11px]" style={{ color: accent ?? "#5C6678" }}>
+          <span className="mt-0.5 shrink-0 font-mono text-[11px]" style={{ color: accent ?? "#64748B" }}>
             {marker}
           </span>
           <span>{item}</span>
@@ -73,7 +73,7 @@ export function BulletList({
 /** Confidence meter — a labeled bar. */
 export function ConfidenceBar({
   value,
-  accent = "#A78BFA",
+  accent = "#7C3AED",
 }: {
   value?: number;
   accent?: string;
@@ -83,7 +83,7 @@ export function ConfidenceBar({
   return (
     <div className="flex items-center gap-2">
       <span className="font-mono text-[10px] text-text-tertiary">confidence</span>
-      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.06]">
+      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-lift/[0.10]">
         <div
           className="h-full rounded-full transition-all duration-700"
           style={{ width: `${pct}%`, background: accent, boxShadow: `0 0 8px ${accent}80` }}
@@ -100,7 +100,7 @@ export function ConfidenceBar({
 export function Caveats({ items }: { items?: string[] }) {
   if (!items?.length) return null;
   return (
-    <div className="rounded-lg border border-white/[0.05] bg-white/[0.02] p-2.5">
+    <div className="rounded-lg border border-lift/[0.08] bg-lift/[0.03] p-2.5">
       <p className="mb-1 font-mono text-[9px] uppercase tracking-wider text-text-tertiary">
         caveats
       </p>

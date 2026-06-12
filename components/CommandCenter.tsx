@@ -33,7 +33,7 @@ export function CommandCenter() {
           </span>
         </div>
         <div className="flex items-center gap-4 font-mono text-[10px] text-text-tertiary">
-          <span className="hidden sm:inline">v0.1 · neural-obsidian</span>
+          <span className="hidden sm:inline">v0.1 · ivory-cognition</span>
           {loading ? (
             <span className="flex items-center gap-1.5 text-accent">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />

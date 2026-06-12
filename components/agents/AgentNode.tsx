@@ -53,13 +53,13 @@ export function AgentNode({ id, active, dim, onSelect, style }: AgentNodeProps) 
             dim ? "opacity-45" : "opacity-100",
           )}
           style={{
-            borderColor: `rgb(${a.rgb} / ${active ? 0.9 : 0.4})`,
-            background: `radial-gradient(circle at 50% 35%, rgb(${a.rgb} / ${
-              active ? 0.45 : 0.2
-            }), rgba(15,18,26,0.6) 70%)`,
+            borderColor: `rgb(${a.rgb} / ${active ? 0.9 : 0.45})`,
+            background: `radial-gradient(circle at 50% 32%, rgb(${a.rgb} / ${
+              active ? 0.32 : 0.14
+            }), rgba(255,255,255,0.92) 72%)`,
             boxShadow: active
-              ? `0 0 28px -4px rgb(${a.rgb} / 0.85)`
-              : `0 0 16px -6px rgb(${a.rgb} / 0.5)`,
+              ? `0 0 28px -4px rgb(${a.rgb} / 0.6), 0 6px 16px -8px rgb(${a.rgb} / 0.4)`
+              : `0 0 16px -8px rgb(${a.rgb} / 0.4), 0 4px 12px -8px rgba(30,27,75,0.18)`,
           }}
         >
           <span

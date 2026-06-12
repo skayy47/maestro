@@ -4,7 +4,7 @@ import { ExternalLink } from "lucide-react";
 import type { ResearchOutput } from "@/lib/agents/envelopes";
 import { Section, Chip, BulletList, ConfidenceBar, Caveats } from "./primitives";
 
-const ACCENT = "#22D3EE"; // research cyan
+const ACCENT = "#0891B2"; // research cyan (deepened for light surface)
 
 export function ResearchDeliverable({ output }: { output: ResearchOutput }) {
   return (
@@ -43,7 +43,7 @@ export function ResearchDeliverable({ output }: { output: ResearchOutput }) {
             {output.competitors.map((c, i) => (
               <div
                 key={i}
-                className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3"
+                className="rounded-lg border border-lift/[0.09] bg-lift/[0.03] p-3"
               >
                 <p className="font-display text-[13px] font-semibold text-text-primary">
                   {c.name}
@@ -54,7 +54,7 @@ export function ResearchDeliverable({ output }: { output: ResearchOutput }) {
                   </p>
                 ) : null}
                 {c.weakness ? (
-                  <p className="mt-1 text-[11px] leading-relaxed text-rose-300/80">
+                  <p className="mt-1 text-[11px] leading-relaxed text-rose-600/90">
                     <span className="font-mono text-[9px] uppercase tracking-wider">gap: </span>
                     {c.weakness}
                   </p>

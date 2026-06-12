@@ -4,7 +4,7 @@ import { Sparkles, ArrowRight } from "lucide-react";
 import type { SynthesisOutput } from "@/lib/agents/envelopes";
 import { Section, ConfidenceBar } from "./primitives";
 
-const ACCENT = "#A78BFA"; // orchestrator violet
+const ACCENT = "#7C3AED"; // orchestrator violet
 
 interface SynthesisFull extends SynthesisOutput {
   total_agents_run?: number;
@@ -52,7 +52,7 @@ export function SynthesisDeliverable({ output }: { output: SynthesisFull }) {
       {/* The deliverable — the heart */}
       {output.the_deliverable ? (
         <Section label="The deliverable">
-          <p className="rounded-lg border-l-2 bg-white/[0.02] py-2 pl-3 pr-2 text-[13px] leading-relaxed text-text-secondary"
+          <p className="rounded-lg border-l-2 bg-lift/[0.03] py-2 pl-3 pr-2 text-[13px] leading-relaxed text-text-secondary"
             style={{ borderColor: ACCENT }}>
             {output.the_deliverable}
           </p>
@@ -77,7 +77,7 @@ export function SynthesisDeliverable({ output }: { output: SynthesisFull }) {
 
       {/* Run stats */}
       {output.total_agents_run != null ? (
-        <div className="flex items-center justify-between border-t border-white/[0.06] pt-3 font-mono text-[10px] text-text-tertiary">
+        <div className="flex items-center justify-between border-t border-lift/[0.09] pt-3 font-mono text-[10px] text-text-tertiary">
           <span>{output.total_agents_run} agents orchestrated</span>
           {output.total_duration_ms != null ? (
             <span>{(output.total_duration_ms / 1000).toFixed(1)}s total</span>

@@ -63,7 +63,7 @@ export function OutputsPanel({ events, loading, source, fellBack }: OutputsPanel
     return (
       <GlassPanel eyebrow="Live Outputs" className="flex h-full flex-col">
         <div className="flex flex-1 flex-col items-center justify-center gap-3 py-10 text-center">
-          <div className="grid h-14 w-14 place-items-center rounded-full border border-white/[0.08] bg-white/[0.02]">
+          <div className="grid h-14 w-14 place-items-center rounded-full border border-lift/[0.10] bg-lift/[0.03]">
             <Radio className="h-6 w-6 text-text-tertiary" />
           </div>
           <p className="font-display text-sm text-text-secondary">Awaiting performance</p>
@@ -92,7 +92,7 @@ export function OutputsPanel({ events, loading, source, fellBack }: OutputsPanel
             >
               <div className="flex items-center gap-1.5">
                 <PlayCircle
-                  className={fellBack ? "h-3.5 w-3.5 text-amber-400" : "h-3.5 w-3.5 text-accent"}
+                  className={fellBack ? "h-3.5 w-3.5 text-amber-600" : "h-3.5 w-3.5 text-accent"}
                 />
                 <span className="font-display text-[11px] font-semibold text-text-primary">
                   {fellBack ? "Showing a cached showcase" : "Showcase run"}
@@ -114,7 +114,7 @@ export function OutputsPanel({ events, loading, source, fellBack }: OutputsPanel
               className="rounded-lg border border-amber-400/30 bg-amber-400/[0.07] p-3"
             >
               <div className="flex items-center gap-2">
-                <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
+                <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
                 <span className="font-display text-[11px] font-semibold text-text-primary">
                   Partly outside MAESTRO&apos;s roster
                 </span>
@@ -128,7 +128,7 @@ export function OutputsPanel({ events, loading, source, fellBack }: OutputsPanel
                   {scope.missing_capabilities.map((c, i) => (
                     <span
                       key={i}
-                      className="rounded-full border border-amber-400/25 bg-amber-400/[0.08] px-2 py-0.5 font-mono text-[9px] text-amber-200/90"
+                      className="rounded-full border border-amber-500/30 bg-amber-400/[0.12] px-2 py-0.5 font-mono text-[9px] text-amber-700"
                     >
                       {c}
                     </span>
@@ -166,7 +166,7 @@ export function OutputsPanel({ events, loading, source, fellBack }: OutputsPanel
               </p>
             </motion.button>
           ) : synthesizing ? (
-            <div className="flex items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-[11px] text-text-secondary">
+            <div className="flex items-center gap-2 rounded-xl border border-lift/[0.09] bg-lift/[0.03] p-3 text-[11px] text-text-secondary">
               <Loader2 className="h-3.5 w-3.5 animate-spin" style={{ color: AGENTS.orchestrator.core }} />
               Composing the final briefing…
             </div>
@@ -186,7 +186,7 @@ export function OutputsPanel({ events, loading, source, fellBack }: OutputsPanel
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04 }}
                 onClick={() => setDrawerItem({ kind: "agent", envelope })}
-                className="group w-full rounded-lg border bg-white/[0.02] p-3 text-left transition hover:bg-white/[0.04]"
+                className="group w-full rounded-lg border bg-lift/[0.03] p-3 text-left transition hover:bg-lift/[0.05]"
                 style={{ borderColor: failed ? "rgba(244,63,94,0.3)" : `${a.core}33` }}
               >
                 <div className="flex items-center gap-2">
@@ -234,7 +234,7 @@ export function OutputsPanel({ events, loading, source, fellBack }: OutputsPanel
 
           {/* Fatal error (non-recoverable) */}
           {hasError && (hasError.data as any)?.recoverable === false ? (
-            <div className="rounded-lg border border-rose-500/30 bg-rose-500/[0.06] p-2.5 text-[11px] text-rose-300">
+            <div className="rounded-lg border border-rose-500/30 bg-rose-500/[0.08] p-2.5 text-[11px] text-rose-600">
               {(hasError.data as any).message}
             </div>
           ) : null}

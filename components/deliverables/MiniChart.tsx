@@ -15,7 +15,7 @@ interface MiniChartProps {
  * "Data Intelligence" agent actually SHOWS a visualization instead of just
  * naming chart types.
  */
-export function MiniChart({ data, accent = "#2DD4BF", height = 64, label }: MiniChartProps) {
+export function MiniChart({ data, accent = "#0D9488", height = 64, label }: MiniChartProps) {
   const gradId = useId();
   if (!data || data.length < 2) return null;
 
@@ -48,7 +48,7 @@ export function MiniChart({ data, accent = "#2DD4BF", height = 64, label }: Mini
           </span>
           <span
             className="font-mono text-[10px] tabular-nums"
-            style={{ color: delta >= 0 ? "#34D399" : "#FB7185" }}
+            style={{ color: delta >= 0 ? "#059669" : "#E11D48" }}
           >
             {delta >= 0 ? "▲" : "▼"} {Math.abs(delta).toFixed(1)}%
           </span>

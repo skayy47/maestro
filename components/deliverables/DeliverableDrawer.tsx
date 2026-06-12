@@ -97,7 +97,7 @@ export function DeliverableDrawer({ item, onClose }: DeliverableDrawerProps) {
           >
             {/* Header */}
             <div
-              className="flex items-center justify-between gap-3 border-b border-white/[0.06] p-5"
+              className="flex items-center justify-between gap-3 border-b border-lift/[0.09] p-5"
               style={{ background: `${meta.accent}0A` }}
             >
               <div className="flex items-center gap-3">
@@ -118,7 +118,7 @@ export function DeliverableDrawer({ item, onClose }: DeliverableDrawerProps) {
               <button
                 type="button"
                 onClick={onClose}
-                className="grid h-8 w-8 place-items-center rounded-lg border border-white/[0.08] text-text-tertiary transition hover:border-white/20 hover:text-text-primary"
+                className="grid h-8 w-8 place-items-center rounded-lg border border-lift/[0.10] text-text-tertiary transition hover:border-lift/30 hover:text-text-primary"
               >
                 <X className="h-4 w-4" />
               </button>

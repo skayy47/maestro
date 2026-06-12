@@ -15,7 +15,7 @@ import type { AutomationOutput } from "@/lib/agents/envelopes";
 import { Section, Chip, ConfidenceBar, Caveats } from "./primitives";
 import { cn } from "@/lib/utils";
 
-const ACCENT = "#FBBF24"; // automation amber
+const ACCENT = "#D97706"; // automation amber (deepened for light surface)
 
 export function AutomationDeliverable({ output }: { output: AutomationOutput }) {
   const [copied, setCopied] = useState(false);
@@ -153,7 +153,7 @@ export function AutomationDeliverable({ output }: { output: AutomationOutput }) 
           <ul className="space-y-1.5">
             {output.error_handling.map((e, i) => (
               <li key={i} className="flex gap-2 text-[12px] leading-relaxed text-text-secondary">
-                <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-400/70" />
+                <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-600/80" />
                 <span>{e}</span>
               </li>
             ))}
@@ -167,7 +167,7 @@ export function AutomationDeliverable({ output }: { output: AutomationOutput }) 
           <ul className="space-y-1.5">
             {output.human_checkpoints.map((h, i) => (
               <li key={i} className="flex gap-2 text-[12px] leading-relaxed text-text-secondary">
-                <ShieldCheck className="mt-0.5 h-3 w-3 shrink-0 text-emerald-400/70" />
+                <ShieldCheck className="mt-0.5 h-3 w-3 shrink-0 text-emerald-600/80" />
                 <span>{h}</span>
               </li>
             ))}
@@ -204,11 +204,11 @@ export function AutomationDeliverable({ output }: { output: AutomationOutput }) 
             <button
               type="button"
               onClick={handleCopy}
-              className="flex items-center justify-center gap-1.5 rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2 font-display text-[12px] font-medium text-text-secondary transition hover:text-text-primary"
+              className="flex items-center justify-center gap-1.5 rounded-lg border border-lift/[0.14] bg-lift/[0.04] px-3 py-2 font-display text-[12px] font-medium text-text-secondary transition hover:text-text-primary"
             >
               {copied ? (
                 <>
-                  <Check className="h-3.5 w-3.5 text-emerald-400" /> Copied
+                  <Check className="h-3.5 w-3.5 text-emerald-600" /> Copied
                 </>
               ) : (
                 <>
@@ -230,7 +230,7 @@ export function AutomationDeliverable({ output }: { output: AutomationOutput }) 
             {showJson ? "hide" : "view"} raw JSON
           </button>
           {showJson ? (
-            <pre className="mt-2 max-h-64 overflow-auto rounded-lg border border-white/[0.06] bg-obsidian-900/80 p-2.5 font-mono text-[10px] leading-relaxed text-text-secondary">
+            <pre className="mt-2 max-h-64 overflow-auto rounded-lg border border-lift/[0.09] bg-obsidian-700/80 p-2.5 font-mono text-[10px] leading-relaxed text-text-secondary">
               {workflowJson}
             </pre>
           ) : null}
