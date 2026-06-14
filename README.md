@@ -343,6 +343,8 @@ npm run test        # watch mode
 
 <div align="center">
 
+**Part of a three-system portfolio:** 🎼 MAESTRO · [🧠 nexus](https://github.com/skayy47/nexus) — grounded RAG · [🔬 AURA](https://github.com/skayy47/AURA) — full-stack data AI
+
 Built by **[Oussama Skia (SKAY)](https://github.com/skayy47)** — AI Engineer · Data Scientist
 
 *MAESTRO demonstrates multi-agent AI system design, real-time streaming, and engineering depth.*  
