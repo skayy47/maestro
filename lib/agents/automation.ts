@@ -6,6 +6,7 @@
 
 import { callGroqJSON } from "@/lib/llm/groq";
 import { buildN8nWorkflow } from "@/lib/agents/n8n";
+import { clampConfidence, asStringArray } from "@/lib/agents/sanitize";
 
 export interface WorkflowNode {
   id: string;
@@ -126,6 +127,11 @@ Use the integration catalog provided in the system prompt. Return a complete wor
     // Never trust the LLM's workflow_json — compile a guaranteed-valid,
     // importable n8n workflow from the structured trigger + steps.
     output.workflow_json = buildN8nWorkflow(output);
+
+    // The model sometimes omits confidence/caveats — enforce the contract
+    // (observed live: `confidence: undefined` shipped to the UI).
+    output.confidence = clampConfidence(output.confidence);
+    output.caveats = asStringArray(output.caveats);
   } catch (error) {
     console.error("[Automation] Error:", error);
     return {

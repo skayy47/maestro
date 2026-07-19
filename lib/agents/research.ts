@@ -5,6 +5,7 @@
  */
 
 import { callGroqJSON } from "@/lib/llm/groq";
+import { clampConfidence, asStringArray } from "@/lib/agents/sanitize";
 
 const getTavilyKey = () => {
   const key = process.env.TAVILY_API_KEY;
@@ -49,7 +50,7 @@ interface TavilyResponse {
   answer: string;
 }
 
-async function searchTavily(query: string): Promise<TavilyResponse> {
+async function searchTavilyOnce(query: string): Promise<TavilyResponse> {
   const response = await fetch("https://api.tavily.com/search", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -66,6 +67,51 @@ async function searchTavily(query: string): Promise<TavilyResponse> {
   }
 
   return (await response.json()) as TavilyResponse;
+}
+
+/**
+ * Search with one retry. A single transient network blip ("fetch failed")
+ * killed the whole research agent in live testing — a sourced brief is worth
+ * one more attempt before failing honestly (we never fall back to unsourced
+ * model knowledge: no retrieval, no market facts).
+ */
+async function searchTavily(query: string): Promise<TavilyResponse> {
+  try {
+    return await searchTavilyOnce(query);
+  } catch (first) {
+    await new Promise((r) => setTimeout(r, 1500));
+    try {
+      return await searchTavilyOnce(query);
+    } catch {
+      const reason = first instanceof Error ? first.message : "network error";
+      throw new Error(
+        `Web search unreachable (${reason}) — research needs live sources; try the mission again in a moment.`
+      );
+    }
+  }
+}
+
+/**
+ * Compact the raw Tavily response into a token-bounded digest for the LLM.
+ *
+ * Injecting the full JSON (8 results × full page content) produced ~6.6K-token
+ * prompts — which is MORE than the 8B fallback model's entire 6K/min budget,
+ * so research hard-failed whenever the 70B was throttled. The full sources
+ * list is still attached to the output verbatim; only the LLM's reading copy
+ * is truncated.
+ */
+export function buildSearchDigest(
+  tavily: TavilyResponse,
+  maxResults = 6,
+  maxContentChars = 700
+): string {
+  const parts: string[] = [];
+  if (tavily.answer) parts.push(`SEARCH ANSWER: ${tavily.answer.slice(0, 600)}`);
+  (tavily.results || []).slice(0, maxResults).forEach((r, i) => {
+    const content = (r.content || "").replace(/\s+/g, " ").slice(0, maxContentChars);
+    parts.push(`[${i + 1}] ${r.title}\nURL: ${r.url}\n${content}`);
+  });
+  return parts.join("\n\n");
 }
 
 const SYSTEM_PROMPT = `You are the Research Agent, a market-intelligence specialist. You are rigorous and source-driven; you never state a market fact you did not retrieve.
@@ -87,7 +133,10 @@ GUARDRAILS
 
 DEPTH REQUIREMENTS (a thin brief reads as low-effort)
 - trends: 3–5 distinct, specific trends.
-- competitors: 3–4 real players, each with concrete positioning + a real weakness/gap.
+- competitors: 3–4 real players when the sources support it, each with concrete
+  positioning + a real weakness/gap. In a thin/niche market with fewer real
+  players, list the real ones plus the closest ADJACENT players (labelled as
+  adjacent in their positioning) and flag the thinness in caveats — NEVER invent.
 - opportunities: 3–4 actionable opportunities tied to the gaps you found.
 - sources: list every source you used (the system will also attach the real URLs).
 
@@ -124,12 +173,12 @@ export async function runResearch(
       .map((r) => ({ title: r.title || r.url, url: r.url }));
 
     // Call Research agent via Groq
-    const userPrompt = `Analyze this web search result and extract structured intelligence:
+    const userPrompt = `Analyze these web search results and extract structured intelligence:
 
 Query: "${userQuery}"
 
 Search Results:
-${JSON.stringify(tavily)}
+${buildSearchDigest(tavily)}
 
 Provide a structured research briefing.`;
 
@@ -143,6 +192,10 @@ Provide a structured research briefing.`;
     if (realSources.length) {
       output.sources = realSources;
     }
+
+    // The model sometimes omits confidence/caveats — enforce the contract.
+    output.confidence = clampConfidence(output.confidence);
+    output.caveats = asStringArray(output.caveats);
 
     reasoning += ` — synthesized findings from ${realSources.length} sources.`;
   } catch (error) {

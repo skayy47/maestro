@@ -143,9 +143,13 @@ export async function callGroq(
   for (let i = 0; i < MODEL_CHAIN.length; i++) {
     const model = MODEL_CHAIN[i];
 
-    // Up to 2 attempts per model: one immediate, one after a short backoff
-    // (to ride out per-minute TPM limits that clear in seconds).
-    for (let attempt = 0; attempt < 2; attempt++) {
+    // Up to 3 attempts per model, riding out per-minute TPM limits that clear
+    // in seconds. The second wait is only honored when it's very short —
+    // observed live: BOTH models throttled in a burst, Groq said "try again in
+    // 850ms", and a 2-attempt policy still failed the whole mission fatally.
+    // Wait budgets per attempt keep the worst case bounded (~20s per model).
+    const waitBudgets = [MAX_RETRY_WAIT_MS, 4000];
+    for (let attempt = 0; attempt < 3; attempt++) {
       try {
         const result = await callGroqOnce(model, prompt, options);
         if (i > 0 || attempt > 0) {
@@ -161,13 +165,14 @@ export async function callGroq(
         }
 
         const waitMs = parseRetryAfterMs((error as Error).message);
-        // Short per-minute limit on first attempt → wait it out, retry same model.
-        if (attempt === 0 && waitMs != null && waitMs <= MAX_RETRY_WAIT_MS) {
+        const budget = waitBudgets[attempt];
+        // Short per-minute limit within this attempt's budget → wait it out.
+        if (budget != null && waitMs != null && waitMs <= budget) {
           console.warn(`[Groq] "${model}" throttled; waiting ${Math.round(waitMs)}ms then retrying.`);
           await sleep(waitMs + 300);
           continue;
         }
-        // Long limit (daily) or already retried → fall to the next model.
+        // Long limit (daily) or out of attempts → fall to the next model.
         if (i < MODEL_CHAIN.length - 1) {
           console.warn(`[Groq] "${model}" exhausted. Falling back to "${MODEL_CHAIN[i + 1]}".`);
         }

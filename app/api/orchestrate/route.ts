@@ -26,7 +26,7 @@
  *   to finish as fast as the model allows.
  */
 
-import { planMission } from "@/lib/agents/orchestrator";
+import { planMission, RUNNABLE_AGENTS } from "@/lib/agents/orchestrator";
 import { runResearch } from "@/lib/agents/research";
 import { runData } from "@/lib/agents/data";
 import { runAutomation } from "@/lib/agents/automation";
@@ -140,6 +140,10 @@ export async function POST(request: Request) {
 
             await Promise.all(
               agentGroup.map(async (agentId) => {
+                // planMission sanitizes the plan, but never announce an agent
+                // we cannot run — an agent_start with no agent_done strands a
+                // spinner in the UI forever.
+                if (!RUNNABLE_AGENTS.includes(agentId)) return;
                 send({ type: "agent_start", data: { agent: agentId } });
                 try {
                   const envelope = await runAgent(
@@ -188,7 +192,11 @@ export async function POST(request: Request) {
               type: "synthesis",
               data: {
                 ...briefing,
-                total_agents_run: collectedEnvelopes.length,
+                // Only agents that actually delivered count — failed agents
+                // are named inside the briefing, not counted as "run".
+                total_agents_run: (collectedEnvelopes as AgentEnvelope[]).filter(
+                  (e) => e.status === "complete"
+                ).length,
                 total_duration_ms: collectedEnvelopes.reduce(
                   (sum: number, e: any) => sum + (e.timing_ms || 0),
                   0

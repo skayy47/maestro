@@ -7,6 +7,7 @@
 import { callGroqJSON } from "@/lib/llm/groq";
 import { generateSyntheticDataset } from "@/lib/agents/dataset";
 import { analyzeCsv } from "@/lib/agents/csv";
+import { clampConfidence, asStringArray } from "@/lib/agents/sanitize";
 
 export interface DataOutput {
   dataset_profile: {
@@ -142,6 +143,21 @@ Use the real column names where available. Tie your insights to the mission doma
     // echoes stale numbers).
     output.dataset_profile = profile;
     output.series = series;
+
+    // The model sometimes omits confidence/caveats — enforce the contract.
+    output.confidence = clampConfidence(output.confidence);
+    output.caveats = asStringArray(output.caveats);
+
+    // Empty-KPI honesty is guaranteed here, not left to model phrasing: a
+    // deliverable with zero KPIs must say WHY, every time.
+    if (!Array.isArray(output.kpis)) output.kpis = [];
+    if (output.kpis.length === 0) {
+      output.caveats.push(
+        profile.data_source === "uploaded"
+          ? "The uploaded file has no usable numeric data — KPIs could not be computed."
+          : "No reliable KPIs could be computed for this mission."
+      );
+    }
 
     reasoning += ` — computed KPIs and insights.`;
   } catch (error) {

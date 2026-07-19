@@ -7,6 +7,7 @@
  */
 
 import { callGroqJSON } from "@/lib/llm/groq";
+import { clampConfidence } from "@/lib/agents/sanitize";
 import type { AgentEnvelope, SynthesisOutput } from "@/lib/agents/envelopes";
 
 const SYSTEM_PROMPT = `You are MAESTRO, the Orchestrator, in your final synthesis movement.
@@ -35,6 +36,7 @@ Output ONLY a valid JSON object matching this schema:
  */
 export function digestEnvelopes(envelopes: AgentEnvelope[]): string {
   return envelopes
+    .filter((e) => e.status === "complete")
     .map((e) => {
       const out = (e.output ?? {}) as Record<string, unknown>;
       const parts: string[] = [`### ${e.agent.toUpperCase()} (confidence ${e.confidence ?? "n/a"})`];
@@ -71,33 +73,64 @@ export async function synthesize(
       executive_summary: "No agents produced output for this mission.",
       key_findings: [],
       the_deliverable: "The orchestration completed without agent contributions.",
-      next_steps: ["Refine the mission and try again."],
+      next_steps: [
+        "Rephrase the mission as a concrete business goal (market, dataset, or process).",
+        "Try one of the example missions to see a full run.",
+      ],
       confidence: 0,
     };
   }
 
-  const digest = digestEnvelopes(envelopes);
+  // Failed agents contribute nothing — synthesize over real substance only,
+  // and name the gap honestly instead of weaving "Research failed" in as if
+  // it were a finding.
+  const completed = envelopes.filter((e) => e.status === "complete");
+  const failedAgents = envelopes
+    .filter((e) => e.status === "failed")
+    .map((e) => e.agent);
+
+  if (!completed.length) {
+    return {
+      executive_summary: `Every agent (${failedAgents.join(", ")}) failed on this run — most often a temporary model rate limit. No findings were produced.`,
+      key_findings: [],
+      the_deliverable:
+        "No deliverable could be produced this run. This is usually transient.",
+      next_steps: [
+        "Run the mission again in a minute.",
+        "Or play the showcase run for an instant full demonstration.",
+      ],
+      confidence: 0,
+    };
+  }
+
+  const digest = digestEnvelopes(completed);
+  const failureNote = failedAgents.length
+    ? `\n\nNOTE: These agents FAILED and produced nothing: ${failedAgents.join(", ")}. Acknowledge the gap honestly in the briefing — do NOT invent their findings.`
+    : "";
   const userPrompt = `MISSION: "${mission}"
 
 AGENT CONTRIBUTIONS:
-${digest}
+${digest}${failureNote}
 
 Compose the final executive briefing that answers the mission.`;
 
   try {
-    return await callGroqJSON<SynthesisOutput>(userPrompt, SYSTEM_PROMPT, {
+    const briefing = await callGroqJSON<SynthesisOutput>(userPrompt, SYSTEM_PROMPT, {
       max_tokens: 1024,
       temperature: 0.4,
     });
+    // Enforce the contract even if the model omitted confidence.
+    briefing.confidence = clampConfidence(briefing.confidence);
+    return briefing;
   } catch (error) {
     console.error("[Synthesizer] Error, falling back to digest summary:", error);
     // Graceful fallback — still useful, built from real agent data.
     const avgConfidence =
-      envelopes.reduce((sum, e) => sum + (e.confidence || 0), 0) /
-      Math.max(envelopes.length, 1);
+      completed.reduce((sum, e) => sum + (e.confidence || 0), 0) /
+      Math.max(completed.length, 1);
     return {
-      executive_summary: `${envelopes.length} specialist agent${envelopes.length > 1 ? "s" : ""} contributed to: "${mission}". See each agent's deliverable for detail.`,
-      key_findings: envelopes
+      executive_summary: `${completed.length} specialist agent${completed.length > 1 ? "s" : ""} contributed to: "${mission}". See each agent's deliverable for detail.`,
+      key_findings: completed
         .map((e) => {
           const out = (e.output ?? {}) as Record<string, unknown>;
           return (out.headline as string) || (out.objective as string) || `${e.agent} completed`;
