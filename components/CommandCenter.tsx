@@ -6,6 +6,7 @@ import { AgentOrbit } from "@/components/agents/AgentOrbit";
 import { MissionPanel } from "@/components/panels/MissionPanel";
 import { OutputsPanel } from "@/components/panels/OutputsPanel";
 import { WorkflowTimeline } from "@/components/timeline/WorkflowTimeline";
+import { ProfileLinks } from "@/components/ui/ProfileLinks";
 
 /**
  * The MAESTRO command center — the AI operating system shell.
@@ -39,19 +40,23 @@ export function CommandCenter() {
             One mission. Many minds. One Maestro.
           </span>
         </div>
-        <div className="flex items-center gap-4 font-mono text-[10px] text-text-tertiary">
-          <span className="hidden sm:inline">v0.1 · ivory-cognition</span>
-          {loading ? (
-            <span className="flex items-center gap-1.5 text-accent">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
-              orchestrating
-            </span>
-          ) : (
-            <span className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-              interface online
-            </span>
-          )}
+        <div className="flex items-center gap-3">
+          <ProfileLinks />
+          <span className="hidden h-5 w-px bg-lift/[0.12] sm:block" />
+          <div className="hidden items-center gap-4 font-mono text-[10px] text-text-tertiary sm:flex">
+            <span className="hidden lg:inline">v0.1 · ivory-cognition</span>
+            {loading ? (
+              <span className="flex items-center gap-1.5 text-accent">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent" />
+                orchestrating
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                interface online
+              </span>
+            )}
+          </div>
         </div>
       </header>
 

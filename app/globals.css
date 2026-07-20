@@ -28,17 +28,21 @@
   }
 
   body {
-    @apply bg-obsidian-900 text-text-primary font-sans antialiased;
+    @apply text-text-primary font-sans antialiased;
     min-height: 100dvh;
-    /* Soft luminous wash — the active agent tints the light canvas. */
+    /* Deeper cool periwinkle-grey ground. White glass panels were washing out
+       on a near-white page (hard on the eyes); a deeper canvas makes each panel
+       read as a distinct, elevated surface while staying light + premium. */
+    background-color: #E3E7F2;
+    /* Soft luminous wash — the active agent tints the canvas. */
     background-image:
       radial-gradient(
         66% 52% at 50% 30%,
-        rgb(var(--agent-rgb) / 0.07),
+        rgb(var(--agent-rgb) / 0.11),
         transparent 72%
       ),
-      radial-gradient(48% 46% at 88% 96%, rgb(var(--agent-deep-rgb) / 0.05), transparent 72%),
-      radial-gradient(42% 42% at 6% 6%, rgba(99, 102, 241, 0.05), transparent 72%);
+      radial-gradient(48% 46% at 88% 96%, rgb(var(--agent-deep-rgb) / 0.09), transparent 72%),
+      radial-gradient(42% 42% at 6% 6%, rgba(99, 102, 241, 0.07), transparent 72%);
     background-attachment: fixed;
     transition: background-image 600ms cubic-bezier(0.22, 1, 0.36, 1);
   }
@@ -68,13 +72,16 @@
 @layer components {
   /* Light Liquid Glass — frosted white plate that floats above the canvas. */
   .glass {
-    background: rgba(255, 255, 255, 0.72);
+    background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(20px) saturate(140%);
     -webkit-backdrop-filter: blur(20px) saturate(140%);
-    border: 1px solid rgba(30, 27, 75, 0.07);
+    border: 1px solid rgba(30, 27, 75, 0.09);
+    /* Layered ambient shadow so the brighter panel clearly floats above the
+       deeper canvas — the definition that was missing white-on-white. */
     box-shadow:
-      0 1px 2px rgba(30, 27, 75, 0.04),
-      0 12px 32px -16px rgba(30, 27, 75, 0.18);
+      0 1px 2px rgba(30, 27, 75, 0.05),
+      0 6px 16px -8px rgba(30, 27, 75, 0.13),
+      0 18px 44px -22px rgba(30, 27, 75, 0.24);
     border-radius: 1.25rem;
     position: relative;
   }
