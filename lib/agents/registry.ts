@@ -129,4 +129,19 @@ export const MVP_AGENTS: AgentId[] = [
   "automation",
 ];
 
+/**
+ * Starter missions loaded when a BUILT agent's orbit node is clicked — turning
+ * a decorative click into a real path to a run. Each foregrounds one agent
+ * while still letting the orchestrator summon supporting ones. Agents not listed
+ * here (the "soon" roster) aren't runnable, so their node only previews color.
+ */
+export const AGENT_MISSION_EXAMPLES: Partial<Record<AgentId, string>> = {
+  research:
+    "Research the electric vehicle market in Europe: the top competitors, the emerging trends, and where the real gaps are.",
+  data:
+    "Analyze this quarter's subscriber and revenue data — surface the key KPIs, the trend, and where to focus next.",
+  automation:
+    "Design an automation that captures new leads from a signup form, sends a welcome email sequence, and alerts the team on Slack.",
+};
+
 export const isMvp = (id: AgentId) => AGENTS[id].phase === "mvp";

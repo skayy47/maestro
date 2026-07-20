@@ -1,9 +1,14 @@
 "use client";
 
-import { AGENTS, ORBIT_AGENTS } from "@/lib/agents/registry";
+import { AGENTS, ORBIT_AGENTS, AGENT_MISSION_EXAMPLES, type AgentId } from "@/lib/agents/registry";
 import { useTheme } from "@/lib/theme/ThemeProvider";
 import { OrchestratorCore } from "@/components/core/OrchestratorCore";
 import { AgentNode } from "@/components/agents/AgentNode";
+
+interface AgentOrbitProps {
+  /** Load a starter mission when a built agent is picked (fills the box). */
+  onPickMission?: (mission: string) => void;
+}
 
 const RADIUS = 42; // % of half-container
 
@@ -16,9 +21,17 @@ function polar(index: number, total: number) {
 }
 
 /** The orbital layout: the conducting core ringed by agent neurons + synapses. */
-export function AgentOrbit() {
+export function AgentOrbit({ onPickMission }: AgentOrbitProps = {}) {
   const { activeAgent, setActiveAgent } = useTheme();
   const total = ORBIT_AGENTS.length;
+
+  // Clicking an agent re-themes the UI (always) AND, for a built agent, offers
+  // a starter mission so the click leads somewhere runnable.
+  const handlePick = (id: AgentId) => {
+    setActiveAgent(id);
+    const example = AGENT_MISSION_EXAMPLES[id];
+    if (example) onPickMission?.(example);
+  };
 
   return (
     <div className="relative mx-auto aspect-square w-full max-w-[560px]">
@@ -66,7 +79,7 @@ export function AgentOrbit() {
             id={id}
             active={activeAgent === id}
             dim={AGENTS[id].phase !== "mvp"}
-            onSelect={setActiveAgent}
+            onSelect={handlePick}
             style={{ left: `${left}%`, top: `${top}%` }}
           />
         );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, AlertCircle, RotateCcw, Paperclip, FileSpreadsheet, X, PlayCircle } from "lucide-react";
 import { GlassPanel } from "@/components/ui/GlassPanel";
@@ -29,14 +29,28 @@ interface MissionPanelProps {
   onPlayShowcase: (id?: string) => void;
   /** Reset state and clear outputs. */
   onReset: () => void;
+  /** A starter mission pushed in from an agent-orbit click (nonce-keyed). */
+  prefill?: { text: string; nonce: number } | null;
 }
 
 /** Left panel — where a mission is entered and conducted. */
-export function MissionPanel({ loading, error, conduct, onPlayShowcase, onReset }: MissionPanelProps) {
+export function MissionPanel({ loading, error, conduct, onPlayShowcase, onReset, prefill }: MissionPanelProps) {
   const [mission, setMission] = useState("");
   const [csv, setCsv] = useState<CsvFile | null>(null);
   const [csvError, setCsvError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Clicking a built agent loads its starter mission — but only into an EMPTY
+  // box, so an exploratory click never eats a mission you're already writing.
+  // Focus the box afterward so the next step (Conduct) is obvious.
+  useEffect(() => {
+    if (!prefill || loading) return;
+    setMission((prev) => (prev.trim() ? prev : prefill.text));
+    textareaRef.current?.focus();
+    // Keyed on nonce so each distinct pick fires once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefill?.nonce]);
 
   const handleConduct = async () => {
     if (!mission.trim() || loading) return;
@@ -75,6 +89,7 @@ export function MissionPanel({ loading, error, conduct, onPlayShowcase, onReset 
   return (
     <GlassPanel eyebrow="Mission" className="flex h-full flex-col">
       <textarea
+        ref={textareaRef}
         value={mission}
         onChange={(e) => setMission(e.target.value)}
         onKeyDown={handleKeyDown}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useOrchestrate } from "@/lib/hooks/useOrchestraate";
 import { AgentOrbit } from "@/components/agents/AgentOrbit";
 import { MissionPanel } from "@/components/panels/MissionPanel";
@@ -19,6 +20,12 @@ import { WorkflowTimeline } from "@/components/timeline/WorkflowTimeline";
 export function CommandCenter() {
   const { events, loading, error, source, fellBack, conduct, playShowcase, reset } =
     useOrchestrate();
+
+  // Bridge: an agent-orbit click asks the mission box to load a starter mission.
+  // The nonce makes each pick distinct so repeated clicks re-trigger the effect.
+  const [missionPrefill, setMissionPrefill] = useState<{ text: string; nonce: number } | null>(
+    null
+  );
 
   return (
     <main className="relative z-10 mx-auto flex min-h-dvh max-w-[1400px] flex-col gap-4 p-4 lg:p-6">
@@ -56,9 +63,12 @@ export function CommandCenter() {
           conduct={conduct}
           onPlayShowcase={playShowcase}
           onReset={reset}
+          prefill={missionPrefill}
         />
         <div className="flex items-center justify-center py-6">
-          <AgentOrbit />
+          <AgentOrbit
+            onPickMission={(text) => setMissionPrefill({ text, nonce: Date.now() })}
+          />
         </div>
         <OutputsPanel
           events={events}
