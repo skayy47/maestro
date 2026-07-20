@@ -9,7 +9,7 @@
 [![Live Demo](https://img.shields.io/badge/Live_Demo-maestro--lac--theta.vercel.app-7c3aed?style=for-the-badge&logo=vercel&logoColor=white)](https://maestro-lac-theta.vercel.app)
 [![GitHub](https://img.shields.io/badge/GitHub-skayy47%2Fmaestro-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/skayy47/maestro)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/Tests-80_passing-22c55e?style=for-the-badge&logo=vitest&logoColor=white)](./TESTING.md)
+[![Tests](https://img.shields.io/badge/Tests-84_passing-22c55e?style=for-the-badge&logo=vitest&logoColor=white)](./TESTING.md)
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 
 </div>
@@ -232,7 +232,7 @@ npm run dev
 
 # Run the test suite
 npm run test:run
-# → 80/80 passing
+# → 84/84 passing
 ```
 
 Both keys are **free tier** — no credit card required. Groq has generous daily token limits; the model fallback chain handles quota exhaustion automatically.
