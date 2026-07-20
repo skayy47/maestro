@@ -30,8 +30,9 @@ export function CommandCenter() {
 
   return (
     <main className="relative z-10 mx-auto flex min-h-dvh max-w-[1400px] flex-col gap-4 p-4 lg:p-6">
-      {/* Header */}
-      <header className="flex items-center justify-between gap-4">
+      {/* Header — lifted above the panels so profile tooltips (which drop into
+          the grid area) paint over the backdrop-filter panels, not behind. */}
+      <header className="relative z-30 flex items-center justify-between gap-4">
         <div className="flex items-baseline gap-3">
           <span className="wordmark-iridescent font-display text-xl font-bold tracking-tight">
             MAESTRO
