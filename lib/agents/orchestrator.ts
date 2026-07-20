@@ -124,6 +124,19 @@ const DATA_ASK =
   /\b(data|datasets?|csv|excel|spreadsheets?|metrics?|kpis?|numbers?|figures?|stats?|statistics|analytics|revenue|sales|churn|forecasts?|how many|donn[ée]es|chiffres?|ventes|m[ée]triques|statistiques|combien)\b/i;
 
 /**
+ * A STRONGER signal than DATA_ASK: the mission explicitly asks to *analyze* /
+ * break down data, metrics, revenue, or trends. DATA_ASK is permissive (used to
+ * DROP a hallucinated data pick); this one is targeted (used to ADD data the
+ * planner skipped). Live-observed miss: "break down the subscriber revenue
+ * trends" ran research + automation only, narrating the numbers instead of
+ * analyzing them. Requires an analysis verb near a data/metric object, OR an
+ * unambiguous compound ("revenue trends", "sales data", "subscriber growth").
+ * EN + FR.
+ */
+const DATA_ANALYSIS_ASK =
+  /\b(analy[sz]\w*|break[\s-]?down|crunch\w*|quantif\w*|visuali[sz]\w*|chart|plot|forecast\w*|segment\w*|benchmark\w*|d[ée]compos\w*)\b[^.?!]{0,60}\b(data|datasets?|revenue|sales|subscribers?|users?|customers?|metrics?|numbers?|figures?|kpis?|stats?|statistics|churn|growth|retention|conversion|trends?|forecasts?|donn[ée]es|chiffres?|ventes|revenus?|abonn[ée]s|tendances?|croissance)\b|\b(revenue|sales|subscriber|customer|user|traffic|conversion|churn|retention|revenus?|ventes|abonn[ée]s)\s+(trends?|numbers?|figures?|data|growth|metrics?|breakdown|analysis|tendances?|donn[ée]es|croissance)\b|\b(sales|revenue|customer|user|subscriber|financial|ventes|financi[èe]res?)\s+(data|donn[ée]es)\b/i;
+
+/**
  * Enforce the plan's structural contract server-side, whatever the LLM emitted:
  * only runnable roster agents, no duplicates, and an execution_order that
  * exactly covers the selected set. Without this, a hallucinated agent id gets
@@ -166,6 +179,25 @@ export function sanitizePlan(
     }
   );
   const selectedIds = new Set(selected.map((s) => s.agent));
+
+  // Explicit data-analysis asks MUST run the Data agent. The LLM planner
+  // sometimes answers "break down the revenue trends" with research + automation
+  // only — narrating the numbers instead of analyzing them. If the mission
+  // explicitly asks to analyze data/metrics/trends and the planner skipped data,
+  // force it in (the honest "illustrative sample" label is applied downstream
+  // when no CSV is present). Mirrors how an uploaded CSV force-adds data.
+  if (
+    typeof opts.mission === "string" &&
+    DATA_ANALYSIS_ASK.test(opts.mission) &&
+    !selectedIds.has("data")
+  ) {
+    selected.push({
+      agent: "data",
+      reason: "The mission explicitly asks to analyze data / metrics / trends.",
+      depends_on: [],
+    });
+    selectedIds.add("data");
+  }
 
   const placed = new Set<string>();
   const order: AgentId[][] = (Array.isArray(plan.execution_order) ? plan.execution_order : [])

@@ -111,6 +111,56 @@ describe("sanitizePlan", () => {
     }
   });
 
+  it("force-adds data when the mission explicitly asks to analyze it but the planner skipped it (the live fitness miss)", () => {
+    const plan = base({
+      selected_agents: [
+        { agent: "research", reason: "market", depends_on: [] },
+        { agent: "automation", reason: "workflow", depends_on: [] },
+      ],
+      execution_order: [["research"], ["automation"]],
+    });
+    const clean = sanitizePlan(plan, {
+      mission:
+        "Analyze the online fitness coaching market, break down the subscriber revenue trends, and design an onboarding automation.",
+    });
+    const agents = clean.selected_agents.map((s) => s.agent);
+    expect(agents).toContain("data");
+    // and it must be scheduled to actually run, not just listed
+    expect(clean.execution_order.flat()).toContain("data");
+  });
+
+  it("force-adds data on an explicit FR data-analysis ask", () => {
+    const plan = base({
+      selected_agents: [{ agent: "research", reason: "marché", depends_on: [] }],
+      execution_order: [["research"]],
+    });
+    const clean = sanitizePlan(plan, {
+      mission: "Analyse les tendances de revenus et décompose la croissance des abonnés",
+    });
+    expect(clean.selected_agents.map((s) => s.agent)).toContain("data");
+  });
+
+  it("does NOT force data onto a pure market-research mission (no analysis ask)", () => {
+    const plan = base({
+      selected_agents: [{ agent: "research", reason: "landscape", depends_on: [] }],
+      execution_order: [["research"]],
+    });
+    const clean = sanitizePlan(plan, {
+      mission:
+        "Research the competitive landscape for RAG-as-a-service startups targeting accounting firms in 2026",
+    });
+    expect(clean.selected_agents.map((s) => s.agent)).toEqual(["research"]);
+  });
+
+  it("does not duplicate data when the planner already selected it", () => {
+    const plan = base({
+      selected_agents: [{ agent: "data", reason: "analyze revenue", depends_on: [] }],
+      execution_order: [["data"]],
+    });
+    const clean = sanitizePlan(plan, { mission: "Analyze my revenue data trends" });
+    expect(clean.selected_agents.filter((s) => s.agent === "data")).toHaveLength(1);
+  });
+
   it("neutralizes expected_deliverable on a full refusal (echo channel)", () => {
     const plan = base({
       selected_agents: [],
