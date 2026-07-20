@@ -25,7 +25,7 @@ export function CommandCenter() {
       {/* Header */}
       <header className="flex items-center justify-between gap-4">
         <div className="flex items-baseline gap-3">
-          <span className="text-glow font-display text-xl font-bold tracking-tight text-text-primary">
+          <span className="wordmark-iridescent font-display text-xl font-bold tracking-tight">
             MAESTRO
           </span>
           <span className="hidden font-sans text-sm text-text-tertiary sm:inline">

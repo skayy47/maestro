@@ -148,7 +148,7 @@ export function OutputsPanel({ events, loading, source, fellBack }: OutputsPanel
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               onClick={() => setDrawerItem({ kind: "synthesis", output: synthesis })}
-              className="glass--active group w-full rounded-xl border p-3.5 text-left transition"
+              className="glass--active card-premium group w-full rounded-xl border p-3.5 text-left"
               style={{ borderColor: `${AGENTS.orchestrator.core}55` }}
             >
               <div className="flex items-center gap-2">
@@ -186,7 +186,7 @@ export function OutputsPanel({ events, loading, source, fellBack }: OutputsPanel
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04 }}
                 onClick={() => setDrawerItem({ kind: "agent", envelope })}
-                className="group w-full rounded-lg border bg-lift/[0.03] p-3 text-left transition hover:bg-lift/[0.05]"
+                className="card-premium group w-full rounded-lg border bg-lift/[0.03] p-3 text-left hover:bg-lift/[0.05]"
                 style={{ borderColor: failed ? "rgba(244,63,94,0.3)" : `${a.core}33` }}
               >
                 <div className="flex items-center gap-2">

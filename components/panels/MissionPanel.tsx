@@ -146,11 +146,12 @@ export function MissionPanel({ loading, error, conduct, onPlayShowcase, onReset 
       {/* Conduct button */}
       <motion.button
         type="button"
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.99 }}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.97 }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
         onClick={handleConduct}
         disabled={!mission.trim() || loading}
-        className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-accent/40 bg-accent/[0.15] py-2.5 font-display text-sm font-semibold text-text-primary transition hover:bg-accent/25 disabled:cursor-not-allowed disabled:opacity-40"
+        className="btn-shimmer mt-4 flex items-center justify-center gap-2 rounded-xl border border-accent/40 bg-accent/[0.15] py-2.5 font-display text-sm font-semibold text-text-primary transition hover:bg-accent/25 hover:shadow-[0_8px_24px_-8px_rgb(var(--agent-rgb)/0.45)] disabled:cursor-not-allowed disabled:opacity-40"
       >
         {loading ? (
           <>
