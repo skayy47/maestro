@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, AlertCircle, RotateCcw, Paperclip, FileSpreadsheet, X, PlayCircle } from "lucide-react";
 import { GlassPanel } from "@/components/ui/GlassPanel";
+import { canAutoloadMissionOver } from "@/lib/agents/registry";
 
 const EXAMPLES = [
   "Analyze a startup idea and create a launch strategy.",
@@ -41,12 +42,12 @@ export function MissionPanel({ loading, error, conduct, onPlayShowcase, onReset,
   const fileRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Clicking a built agent loads its starter mission — but only into an EMPTY
-  // box, so an exploratory click never eats a mission you're already writing.
-  // Focus the box afterward so the next step (Conduct) is obvious.
+  // Clicking a built agent loads its starter mission. It fills an empty box and
+  // swaps freely between agents' examples, but never clobbers a mission you
+  // actually typed. Focus the box afterward so the next step (Conduct) is clear.
   useEffect(() => {
     if (!prefill || loading) return;
-    setMission((prev) => (prev.trim() ? prev : prefill.text));
+    setMission((prev) => (canAutoloadMissionOver(prev) ? prefill.text : prev));
     textareaRef.current?.focus();
     // Keyed on nonce so each distinct pick fires once.
     // eslint-disable-next-line react-hooks/exhaustive-deps

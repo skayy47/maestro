@@ -144,4 +144,21 @@ export const AGENT_MISSION_EXAMPLES: Partial<Record<AgentId, string>> = {
     "Design an automation that captures new leads from a signup form, sends a welcome email sequence, and alerts the team on Slack.",
 };
 
+/** The starter missions, as a set — used to tell an auto-loaded example apart
+ *  from a mission the user actually typed. */
+export const STARTER_MISSIONS: ReadonlySet<string> = new Set(
+  (Object.values(AGENT_MISSION_EXAMPLES).filter(Boolean) as string[]).map((m) => m.trim())
+);
+
+/**
+ * May an agent click load its starter mission over the box's CURRENT content?
+ * Yes when the box is empty or still holds an unedited starter (so clicking
+ * between agents swaps their examples fluidly) — but NO when the user has typed
+ * their own mission, which must never be clobbered by an exploratory click.
+ */
+export function canAutoloadMissionOver(current: string): boolean {
+  const t = current.trim();
+  return t === "" || STARTER_MISSIONS.has(t);
+}
+
 export const isMvp = (id: AgentId) => AGENTS[id].phase === "mvp";
