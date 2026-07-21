@@ -60,7 +60,7 @@ If the mission asks for something outside the current roster (content writing, c
 `POST /api/orchestrate` returns a live `ReadableStream`. The frontend doesn't poll — it receives typed events as they occur:
 
 ```
-plan → agent_start → token → agent_done → synthesis → done
+plan → agent_start → agent_done → synthesis → done
 ```
 
 The SSE parser is a stateful line-by-line processor that tracks `event:` type across lines — critical for chunked delivery where the type header and data body can arrive in separate TCP chunks. A blank line never resets pending type (caught and fixed by the test suite).
@@ -171,10 +171,11 @@ Agents return `AgentEnvelope<T>` — a typed structure carrying status, confiden
 
 A custom design system built for cognitive clarity in high-information, real-time interfaces:
 
-- **Light premium surfaces** (`#F7F9FC` body / `#FFFFFF` glass) — white Liquid Glass panels with `rgba(255,255,255,0.72)` + `blur(20px)` + layered shadow
+- **Light premium surfaces** (`#E3E7F2` canvas / white glass) — bright Liquid Glass panels at `rgba(255,255,255,0.92)` + `blur(20px)` + layered shadow, floating on a deeper periwinkle ground so every panel reads as a distinct elevated surface
 - **Indigo-ink typography** (`#1E1B4B` primary / `#475569` secondary) — WCAG-compliant contrast on every surface
 - **7 per-agent accent colors** deepened for legibility on light (`#hex_neon` → `#hex_deep`) — each agent has a distinct visual identity across orbit, timeline, and deliverable
-- **Single `--agent` CSS variable** — one property drives the entire active-agent aesthetic (glow rings, borders, chips, timeline pulse, orb)
+- **Single `--agent` CSS variable** — one property drives the entire active-agent aesthetic (glow rings, borders, chips, timeline pulse, and the core gem)
+- **The Conductor's Gem** — a real Three.js core (react-three-fiber): a distorted icosahedron that breathes inside a counter-rotating wireframe lattice and sparkle field, continuously re-lighting itself in the live agent's color. Code-split and `prefers-reduced-motion` aware
 - **Framer Motion** with streaming-state animations, entry staggering, and `prefers-reduced-motion` compliance
 
 | Agent | Color | Identity |
@@ -199,7 +200,7 @@ A custom design system built for cognitive clarity in high-information, real-tim
 | **Streaming** | Next.js `ReadableStream` + SSE | Live event delivery to the UI without polling |
 | **UI** | Tailwind CSS + Framer Motion | Ivory Cognition design system (light premium, WCAG-compliant) |
 | **Charts** | Hand-rolled SVG area chart | Zero dependencies; full control over the gradient fill + trend badge |
-| **Testing** | Vitest | 48 unit tests over pure orchestration logic |
+| **Testing** | Vitest | 84 unit tests over pure orchestration logic |
 | **Deployment** | Vercel | Auto-deploy on `git push main` |
 
 ---
@@ -283,7 +284,7 @@ maestro/
 │   │   └── sse.ts              Stateful SSE stream parser
 │   └── showcase/
 │       └── missions.ts         Warmed showcase cache (always-demoable)
-└── tests/                      48 Vitest unit tests
+└── tests/                      84 Vitest unit tests
     ├── sse.test.ts
     ├── n8n.test.ts
     ├── csv.test.ts
@@ -299,7 +300,7 @@ maestro/
 
 ## Testing
 
-48 unit tests cover the orchestration-critical pure logic — the pieces where a silent bug breaks the entire output:
+84 unit tests cover the orchestration-critical pure logic — the pieces where a silent bug breaks the entire output:
 
 | Suite | What it protects |
 |---|---|
