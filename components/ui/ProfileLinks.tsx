@@ -69,8 +69,9 @@ export function ProfileLinks() {
           />
           <span className="relative h-[17px] w-[17px]">{l.icon}</span>
 
-          {/* tooltip */}
-          <span className="pointer-events-none absolute -bottom-7 left-1/2 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-md bg-text-primary px-2 py-0.5 font-mono text-[9px] tracking-wide text-white opacity-0 shadow-sm transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100">
+          {/* tooltip — opens UPWARD (above the header), where no panel can clip
+              it; dropping it downward collided with the Live Outputs panel. */}
+          <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-md bg-text-primary px-2 py-0.5 font-mono text-[9px] tracking-wide text-white opacity-0 shadow-md transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100">
             {l.label}
           </span>
         </motion.a>
