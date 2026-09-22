@@ -1,7 +1,19 @@
 /**
  * Groq LLM client — primary brain.
- * Llama 3.3 70B for speed + reasoning. JSON-mode for structured outputs.
- * Fallback to Gemini for long-context or if Groq rate-limits.
+ * openai/gpt-oss-120b for speed + reasoning. JSON-mode for structured outputs.
+ * Groq is the only provider wired in. Resilience comes from MODEL_CHAIN
+ * below (a second Groq model on a separate quota bucket), not from a
+ * second vendor — an earlier version of this comment claimed a Gemini
+ * fallback that was never implemented.
+ *
+ * NOTE (2026-09-18): Groq deprecated llama-3.3-70b-versatile and
+ * llama-3.1-8b-instant for free/dev tier on 2026-06-17 (both return 404
+ * as of this fix — verified live, not from docs). Migrated to Groq's
+ * recommended replacement, same move nexus already made. gpt-oss-120b is
+ * a reasoning model: it spends part of max_tokens on hidden "reasoning"
+ * chunks before emitting content, so every call sets reasoning_effort:
+ * "low" to bound that spend and avoid a low max_tokens caller silently
+ * exhausting its budget on chain-of-thought and returning empty content.
  */
 
 // Lazy check: only throw if the API is actually called without a key
@@ -23,8 +35,8 @@ const GROQ_BASE_URL = "https://api.groq.com/openai/v1";
  * rate limit from collapsing a live demo into "Failed" cards.
  */
 const MODEL_CHAIN = [
-  "llama-3.3-70b-versatile", // primary: best reasoning
-  "llama-3.1-8b-instant", // fallback: separate + larger quota, very fast
+  "openai/gpt-oss-120b", // primary: Groq's recommended migration target
+  "qwen/qwen3.8-27b", // fallback: separate quota bucket, live 2026-09-18
 ];
 
 /** Errors worth retrying on the next model (rate limits, transient 5xx). */
@@ -103,6 +115,7 @@ async function callGroqOnce(
       temperature,
       max_tokens,
       response_format: json_mode ? { type: "json_object" } : undefined,
+      reasoning_effort: "low",
     }),
   });
 
@@ -230,7 +243,7 @@ export async function* streamGroq(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: MODEL_CHAIN[0],
         messages: [
           { role: "system", content: system },
           { role: "user", content: prompt },
@@ -238,6 +251,7 @@ export async function* streamGroq(
         temperature,
         max_tokens,
         stream: true,
+        reasoning_effort: "low",
       }),
     });
 
