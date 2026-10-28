@@ -30,8 +30,8 @@ const GROQ_BASE_URL = "https://api.groq.com/openai/v1";
 
 /**
  * Model fallback chain. Each Groq model has its OWN per-day token budget, so
- * when the 70B hits its daily limit (TPD 429), the 8B model — with a much
- * larger separate quota — keeps the system answering. This is what stops a
+ * when the primary hits its daily limit (TPD 429), the fallback model — with
+ * its own separate quota — keeps the system answering. This is what stops a
  * rate limit from collapsing a live demo into "Failed" cards.
  */
 const MODEL_CHAIN = [

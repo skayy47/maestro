@@ -83,7 +83,7 @@ The n8n compiler illustrates the philosophy clearly: we don't trust the LLM to p
 
 Two layers ensure MAESTRO always demos beautifully:
 
-**Model fallback chain** — Groq Llama 3.3 70B (primary) → Llama 3.1 8B (separate daily quota). `parseRetryAfterMs()` extracts the wait hint from Groq's error messages. Short TPM limits (≤16s) are waited out. Long TPD limits switch models immediately.
+**Model fallback chain** — Groq GPT-OSS 120B (primary) → Qwen3.8 27B (separate daily quota). Llama 3.3 70B / 3.1 8B were retired by Groq on 2026-06-17 and replaced here. `parseRetryAfterMs()` extracts the wait hint from Groq's error messages. Short TPM limits (≤16s) are waited out. Long TPD limits switch models immediately.
 
 **Warmed showcase cache** — A hand-curated, flawless pre-baked run lives in `lib/showcase/missions.ts`. On hard failures (network) or soft failures (all agents rate-limited), the orchestration hook replays it with staggered timing that looks live. A recruiter's demo never ends in error cards.
 
@@ -134,7 +134,7 @@ Agents return `AgentEnvelope<T>` — a typed structure carrying status, confiden
   │                                                            │
   │  ┌──────────────────┐                                      │
   │  │   Orchestrator   │  LLM planner → MissionPlan DAG       │
-  │  │  (Llama 3.3 70B) │  + scope_assessment                  │
+  │  │ (GPT-OSS 120B)   │  + scope_assessment                  │
   │  └────────┬─────────┘                                      │
   │           │  execution_order                               │
   │           ▼                                                │
@@ -195,7 +195,7 @@ A custom design system built for cognitive clarity in high-information, real-tim
 | Layer | Technology | Why |
 |---|---|---|
 | **Framework** | Next.js 14 (App Router) + TypeScript 5 | API routes for SSE, full-stack TypeScript |
-| **LLM** | Groq — Llama 3.3 70B → 3.1 8B fallback | JSON mode for structured output; fallback chain for free-tier reliability |
+| **LLM** | Groq — GPT-OSS 120B → Qwen3.8 27B fallback | JSON mode for structured output; fallback chain for free-tier reliability |
 | **Web search** | Tavily API | Grounded real-web results with source URLs |
 | **Streaming** | Next.js `ReadableStream` + SSE | Live event delivery to the UI without polling |
 | **UI** | Tailwind CSS + Framer Motion | Ivory Cognition design system (light premium, WCAG-compliant) |
